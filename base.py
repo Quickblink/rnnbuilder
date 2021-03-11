@@ -14,8 +14,39 @@ class ModuleBase(nn.Module):
 
 
 
+class OuterModule(nn.Module):
+    def __init__(self, inner):
+        super().__init__()
+        self.inner = inner
+        self.register_buffer('_device_zero', torch.zeros(1))
+        self.to('cpu')
+        self.configure(full_state=False)
+
+    # input mode = ['single, batch, sequence']
+    def configure(self, full_state=None, input_mode=None):
+        for module in self.modules():
+            module._full_state = full_state
+
+    def _apply(self, fn):
+        super()._apply(fn)
+        for module in self.modules():
+            module.device = self._device_zero.device
+
+
+    def forward(self, x, h=None):
+        pass
+        # input modes, outputs modes?
+        # get initial state
+
+    def forward_log(self, x, h):
+        pass
+        # only single step inputs?
+
+
+
+
 class StatelessWrapper(ModuleBase):
-    def __init__(self, in_shape, inner, out_shape):
+    def __init__(self, in_shape, out_shape, inner):
         super().__init__(in_shape)
         self.inner = inner
         self.out_shape = out_shape
@@ -58,22 +89,30 @@ class OuterNetworkModule(ModuleBase):
         self.layers = layers
         self.inputs = inputs
         self.placeholders_rev = placeholders_rev  # maps from placeholder names to layer names
-
+        self._full_state = False
         self.cycle_outputs = cycle_outputs
 
-    #TODO: full_state output
     def _run_cycle(self, results, cycle_name, h):
-        time = results[next(iter(self.inputs[cycle_name]))].shape[0]
+        time, batch = results[next(iter(self.inputs[cycle_name]))].shape[:2]
         inner_results = {name: results[name][0].unsqueeze(0) for name in self.inputs[cycle_name]}
         inner_results, h = self.layers[cycle_name](inner_results, h)
+        if self._full_state:
+            state = StateContainerNew(h, (time, batch), self.device)
+            for container, entry in state.transfer(h):
+                container[0] = entry
         for name in self.cycle_outputs[cycle_name]:
             results[name] = torch.empty((time,)+inner_results[name].shape, device=inner_results[name].device)
-            results[name][0] = inner_results[name]
+            results[name][0] = inner_results[name][0]
         for t in range(1, time):
             inner_results = {name: results[name][t].unsqueeze(0) for name in self.inputs[cycle_name]}
             inner_results, h = self.layers[cycle_name](inner_results, h)
             for name in self.cycle_outputs[cycle_name]:
-                results[name][t] = inner_results[name]
+                results[name][t] = inner_results[name][0]
+            if self._full_state:
+                for container, entry in state.transfer(h):
+                    container[t] = entry
+        out_state = state.state if self.full_state else h
+        return out_state
 
     def forward(self, inp, hidden_state):
         state, recurrent_outputs = hidden_state
@@ -82,7 +121,7 @@ class OuterNetworkModule(ModuleBase):
         results = {'input': inp}
         for layer_name in self.order:
             if layer_name in self.cycle_outputs:
-                self._run_cycle(results, layer_name, state[layer_name])
+                new_state[layer_name] = self._run_cycle(results, layer_name, state[layer_name])
             else:
                 if len(self.inputs[layer_name]) > 1:
                     inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
@@ -92,7 +131,7 @@ class OuterNetworkModule(ModuleBase):
                 results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
                 if layer_name in self.placeholders_rev:
                     ph = self.placeholders_rev[layer_name]
-                    new_recurrent_outputs[ph] = results[layer_name][-1:]
+                    new_recurrent_outputs[ph] = results[layer_name] if self._full_state else results[layer_name][-1:]
                     results[ph] = torch.cat((recurrent_outputs[ph], results[layer_name][:-1]), dim=0)
         return results['output'], (new_state, new_recurrent_outputs)
 
@@ -151,6 +190,13 @@ class NestedNetworkModule(InnerNetworkModule):
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results, (new_state, new_recurrent_outputs)
+
+
+class Unroller(ModuleBase):
+    def __init__(self, in_shape, out_shape, inner):
+        super().__init__(in_shape)
+        self.inner = inner
+        self.out_shape = out_shape
 
 
 class SequenceWrapperFull(nn.Module):
