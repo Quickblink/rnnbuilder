@@ -1,8 +1,7 @@
 import torch
-import torch.nn as nn
-from utils import StateContainerNew
+from torch import nn
 
-
+from .utils import StateContainerNew
 
 class ModuleBase(nn.Module):
     def __init__(self, in_shape):
@@ -11,6 +10,7 @@ class ModuleBase(nn.Module):
 
     def get_initial_state(self, batch_size):
         return ()
+
 
 
 
@@ -41,25 +41,6 @@ class OuterModule(nn.Module):
     def forward_log(self, x, h):
         pass
         # only single step inputs?
-
-
-
-
-class StatelessWrapper(ModuleBase):
-    def __init__(self, in_shape, out_shape, inner):
-        super().__init__(in_shape)
-        self.inner = inner
-        self.out_shape = out_shape
-
-    def forward(self, x, h):
-        time = x.shape[0]
-        batch = x.shape[1]
-        x = x.reshape((time*batch,)+self.in_shape)
-        x = self.inner(x)
-        return x.reshape((time, batch)+self.out_shape), ()
-
-    def get_initial_output(self, batch_size):
-        return torch.zeros((1, batch_size)+self.out_shape)
 
 
 
@@ -190,72 +171,3 @@ class NestedNetworkModule(InnerNetworkModule):
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results, (new_state, new_recurrent_outputs)
-
-
-class Unroller(ModuleBase):
-    def __init__(self, in_shape, out_shape, inner):
-        super().__init__(in_shape)
-        self.inner = inner
-        self.out_shape = out_shape
-
-
-class SequenceWrapperFull(nn.Module):
-    def __init__(self, model):
-        super().__init__()
-        self.model = model
-        self.in_size = model.in_size
-        self.out_size = model.out_size
-        self.is_logging = False
-        self.full_state = False
-
-    def make_log(self, length, first_entry):
-        if type(first_entry) is dict:
-            new_log = {}
-            for k, v in first_entry.items():
-                new_log[k] = self.make_log(length, v)
-        elif type(first_entry) is torch.Tensor:
-            new_log = torch.empty(length + first_entry.shape, device=first_entry.device)
-        else:
-            raise Exception('Unknown type in logging!')
-        return new_log
-
-    def enter_log(self, log, entry, t):
-        if type(log) is dict:
-            for k in log:
-                self.enter_log(log[k], entry[k], t)
-        elif type(log) is torch.Tensor:
-            log[t] = entry.rename(None)
-        else:
-            raise Exception('Unknown type in logging!')
-
-    def forward(self, inp, h):
-        self.model.is_logging = self.is_logging
-        if self.is_logging:
-            model_out = self.model(inp[0], h)
-            out1, h, first_entry = model_out[0], model_out[1], model_out[2] if len(model_out) > 2 else model_out[0]
-            log = self.make_log(inp.shape[:1], first_entry)
-            self.enter_log(log, first_entry, 0)
-        else:
-            out1, h = self.model(inp[0], h)
-        output = torch.empty(inp.shape[:1]+out1.shape, device=inp.device, names=('time', *out1.names))
-        if self.full_state:
-            state = StateContainerNew(h, inp.shape[:2], inp.device)
-            for container, entry in state.transfer(h):
-                container[0] = entry.rename(None)
-        output[0] = out1.rename(None)
-        for t in range(1, inp.shape[0]):
-            model_out = self.model(inp[t], h)
-            output[t], h = model_out[0].rename(None), model_out[1]
-            if self.is_logging:
-                self.enter_log(log, model_out[2] if len(model_out) > 2 else model_out[0], t)
-            if self.full_state:
-                for container, entry in state.transfer(h):
-                    container[t] = entry.rename(None)
-        out_state = state.state if self.full_state else h
-        if self.is_logging:
-            return output, out_state, log
-        else:
-            return output, out_state
-
-    def get_initial_state(self, batch_size):
-        return self.model.get_initial_state(batch_size)

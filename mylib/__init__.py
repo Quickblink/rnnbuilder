@@ -1,12 +1,30 @@
-from factories import ModuleFactory, flatten_shape, flatten_to_int
-from base import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule
 from torch import nn
+from .base.modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
+from .base.factories import ModuleFactory
+from .base.utils import shape_sum
+
+class Sequential(ModuleFactory):
+    def __init__(self, *module_facs):
+        super().__init__()
+        self.module_facs = module_facs
 
 
-def shape_sum(shapes):
-    if None in shapes:
-        return None
-    return (sum([flatten_to_int(shape) for shape in shapes]),)
+    def shape_change(self, in_shape):
+        cur_shape = in_shape
+        for factory in self.module_facs:
+            cur_shape = factory.size_change(cur_shape)
+        return cur_shape
+
+    def __call__(self, inp_info):
+        child_info = {**inp_info}
+        mlist = []
+        for factory in self.module_facs:
+            new_module = factory(child_info)
+            mlist.append(new_module)
+            child_info['in_shape'] = new_module.get_out_shape()
+        return SequentialModule(inp_info['in_shape'], mlist)
+
+
 
 class LayerBase:
     pass
@@ -20,6 +38,23 @@ class Placeholder(LayerBase):
         if self._layer is None:
             raise Exception('Placeholder not assigned to layer.')
         return self._layer
+
+
+class Layer(LayerBase):
+    def __init__(self, inputs, factory, placeholder=None):
+        try:
+            iter(inputs)
+            self.inputs = inputs
+        except TypeError:
+            self.inputs = (inputs,)
+        if not isinstance(factory, ModuleFactory):
+            pass  # TODO: use Sequential
+        else:
+            self.factory = factory
+        self.placeholder = placeholder
+        if placeholder:
+            placeholder._layer = self
+
 
 class Network(ModuleFactory):
     def __init__(self):
@@ -39,8 +74,8 @@ class Network(ModuleFactory):
             if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):
                 raise Exception('Two placeholders given for a layer.')
             self._ph[key]._layer = value
-            self._ph[key+'_ph'] = self._ph[key]
-            self._reverse_laph[self._ph[key]] = key+'_ph'
+            self._ph[key +'_ph'] = self._ph[key]
+            self._reverse_laph[self._ph[key]] = key +'_ph'
             del self._ph[key]
         if key in self._layers:
             raise Exception('Overwriting layers with other layers is not allowed.')
@@ -65,7 +100,8 @@ class Network(ModuleFactory):
             found_new = None
             for layer_name in layers:
                 inputs = input_no_ph[layer_name]
-                inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum([shapes[layer_name] for layer_name in inputs])
+                inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum \
+                    ([shapes[layer_name] for layer_name in inputs])
                 shapes[layer_name] = self._layers[layer_name].factory.shape_change(inp_shape)
                 if shapes[layer_name] is not None:
                     found_new = layer_name
@@ -81,7 +117,7 @@ class Network(ModuleFactory):
 
     def _compute_execution_order(self, input_no_ph, input_names, ph_rev):
 
-        #Find reachables
+        # Find reachables
         reachable = {}
         for path, inp_list in input_no_ph.items():
             visited = {*inp_list}
@@ -160,7 +196,8 @@ class Network(ModuleFactory):
         if not unrolled:
             module_dict = nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
-            outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order(input_no_ph, input_names, ph_rev)
+            outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
+                (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
                 module_dict_inner = nn.ModuleDict()
@@ -174,22 +211,4 @@ class Network(ModuleFactory):
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev)
         else:
             return self._build_inner_network(in_shape, self._og_order, in_shapes, input_names, ph_lookup)
-
-
-
-
-class Layer(LayerBase):
-    def __init__(self, inputs, factory, placeholder=None):
-        try:
-            iter(inputs)
-            self.inputs = inputs
-        except TypeError:
-            self.inputs = (inputs,)
-        if not isinstance(factory, ModuleFactory):
-            pass  # TODO: use Sequential
-        else:
-            self.factory = factory
-        self.placeholder = placeholder
-        if placeholder:
-            placeholder._layer = self
 

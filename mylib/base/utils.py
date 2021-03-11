@@ -1,5 +1,25 @@
 import torch
 
+def flatten_to_int(shape):
+    out = 1
+    for s in shape:
+        out *= s
+    return out
+
+def flatten_shape(shape):
+    if shape is None:
+        return None
+    out = 1
+    for s in shape:
+        out *= s
+    return (out,)
+
+def shape_sum(shapes):
+    if None in shapes:
+        return None
+    return (sum([flatten_to_int(shape) for shape in shapes]),)
+
+
 
 class StateContainerNew:
     def __init__(self, init_state, add_dims=None, device=None, state_storage_type=None):
@@ -29,7 +49,6 @@ class StateContainerNew:
                 for state1, other1 in self._transfer(state[k], other[k]):
                     yield state1, other1
         elif isinstance(state, torch.Tensor):
-            #print('yields')
             yield state, other
         else:
             raise Exception('Unknown type in model state!')
