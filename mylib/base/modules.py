@@ -34,13 +34,17 @@ class OuterModule(nn.Module):
 
 
     def forward(self, x, h=None):
-        pass
+        h = h or self.inner.get_initial_state(x.shape[1])
+        return self.inner(x, h)
         # input modes, outputs modes?
         # get initial state
 
     def forward_log(self, x, h):
         pass
         # only single step inputs?
+
+    def get_initial_state(self, batch_size):
+        return self.inner.get_initial_state(batch_size)
 
 
 
@@ -61,7 +65,7 @@ class SequentialModule(ModuleBase):
         return [module.get_initial_state(batch_size) for module in self.mlist]
 
     def get_initial_output(self, batch_size):
-        self.mlist[-1].get_initial_output(batch_size)
+        return self.mlist[-1].get_initial_output(batch_size)
 
 class OuterNetworkModule(ModuleBase):
     def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, cycle_outputs, placeholders_rev):
@@ -82,7 +86,7 @@ class OuterNetworkModule(ModuleBase):
             for container, entry in state.transfer(h):
                 container[0] = entry
         for name in self.cycle_outputs[cycle_name]:
-            results[name] = torch.empty((time,)+inner_results[name].shape, device=inner_results[name].device)
+            results[name] = torch.empty((time,)+inner_results[name].shape[1:], device=inner_results[name].device)
             results[name][0] = inner_results[name][0]
         for t in range(1, time):
             inner_results = {name: results[name][t].unsqueeze(0) for name in self.inputs[cycle_name]}
@@ -92,7 +96,7 @@ class OuterNetworkModule(ModuleBase):
             if self._full_state:
                 for container, entry in state.transfer(h):
                     container[t] = entry
-        out_state = state.state if self.full_state else h
+        out_state = state.state if self._full_state else h
         return out_state
 
     def forward(self, inp, hidden_state):
@@ -123,15 +127,16 @@ class OuterNetworkModule(ModuleBase):
 
 
     def get_initial_output(self, batch_size):
-        self.mlist[-1].get_initial_output(batch_size)
+        return self.layers['output'].get_initial_output(batch_size)
 
 class InnerNetworkModule(ModuleBase):
-    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, recurrent_layers):
+    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, recurrent_layers, intial_values):
         super().__init__(in_shape)
         self.order = order
         self.layers = layers
         self.inputs = inputs
         self.recurrent_layers = recurrent_layers  # maps from placeholder names to layer names
+        self.initial_values = intial_values # maps from placeholder names to initial_value functions
 
 
     def forward(self, inp, hidden_state):
@@ -151,11 +156,13 @@ class InnerNetworkModule(ModuleBase):
     def get_initial_state(self, batch_size):
         state = {layer_name: layer.get_initial_state(batch_size) for layer_name, layer in self.layers.items()}
         recurrent_outputs = {ph_name: self.layers[layer_name].get_initial_output(batch_size) for ph_name, layer_name in self.recurrent_layers.items()}
+        for ph_name, value_func in self.initial_values:
+            recurrent_outputs[ph_name] = value_func(recurrent_outputs[ph_name].shape)
         return state, recurrent_outputs
 
 
     def get_initial_output(self, batch_size):
-        self.mlist[-1].get_initial_output(batch_size)
+        return self.layers['output'].get_initial_output(batch_size)
 
 class NestedNetworkModule(InnerNetworkModule):
     def forward(self, results, hidden_state):

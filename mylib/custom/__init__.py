@@ -12,7 +12,7 @@ class CustomModule(nn.Module):
         pass
 
     def get_initial_state(self, batch_size):
-        pass # TODO: raise exception
+        return ()
 
 class _NonRecurrentGenerator:
     def __init__(self, make_module, prepare_input, shape_change):
@@ -43,7 +43,7 @@ class _RecurrentGenerator:
         return RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
                                 self._shape_change_method, *args, **kwargs)
 
-
+# TODO: merge single_step and unroll_full_state into one string variable
 def register_recurrent(*, module_class: Type[CustomModule], prepare_input: Literal['flatten', 'keep'] = 'keep',
                        single_step: bool, unroll_full_state: bool = True,
                        shape_change: Union[Literal['none', 'auto'], Callable[[Optional[tuple]], tuple]]):

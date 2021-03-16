@@ -17,15 +17,16 @@ class NonRecurrentFactory(ModuleFactory):
 
 
     def _shape_change(self, in_shape):
-        if self._shape_change_method == 'none' or in_shape is None:
+        if callable(self._shape_change_method):
+            return self._shape_change_method(in_shape, *self._args, **self._kwargs)
+        elif self._shape_change_method == 'none' or in_shape is None:
             return in_shape
-        elif self._shape_change_method == 'auto':
+        else:
             if not self._buffered_module or in_shape != self._buffered_shape:
                 self._buffered_module = self._make_module(in_shape, *self._args, **self._kwargs)
                 self._buffered_shape = in_shape
             return self._buffered_module(torch.zeros((1,)+in_shape)).shape[1:] #TODO: in_shape should be flattened if set for auto
-        else:
-            return self._shape_change_method(in_shape, *self._args, **self._kwargs)
+
 
 
     def _assemble_module(self, in_shape, unrolled):
@@ -47,6 +48,7 @@ class RecurrentFactory(ModuleFactory):
         self._kwargs = kwargs
         self._buffered_module = None
         self._buffered_shape = None
+        self._test_shape = (1,) if single_step else (10,1) # TODO: revert to 1
 
     def _make_module(self, in_shape, *args, **kwargs):
         module = self._module_class(*args, **kwargs)
@@ -55,15 +57,15 @@ class RecurrentFactory(ModuleFactory):
 
 
     def _shape_change(self, in_shape):
-        if self._shape_change_method == 'none' or in_shape is None:
+        if callable(self._shape_change_method):
+            return self._shape_change_method(in_shape, *self._args, **self._kwargs)
+        elif self._shape_change_method == 'none' or in_shape is None:
             return in_shape
-        elif self._shape_change_method == 'auto':
+        else:
             if not self._buffered_module or in_shape != self._buffered_shape:
                 self._buffered_module = self._make_module(in_shape, *self._args, **self._kwargs)
                 self._buffered_shape = in_shape
-            return self._buffered_module(torch.zeros((1,)+in_shape)).shape[1:]
-        else:
-            return self._shape_change_method(in_shape, *self._args, **self._kwargs)
+            return self._buffered_module(torch.zeros(self._test_shape+in_shape), self._buffered_module.get_initial_state(1))[0].shape[2-self._single_step:]
 
 
     def _assemble_module(self, in_shape, unrolled):

@@ -42,7 +42,7 @@ class RecurrentWrapper(ModuleBase):
                 if self._full_state:
                     for container, entry in state.transfer(h):
                         container[t] = entry.rename(None)
-            new_state = state.state if self.full_state else h
+            new_state = state.state if self._full_state else h
         else:
             x = x.reshape((time, batch) + self.in_shape)
             output, new_state = self.inner(x, h)
@@ -52,4 +52,4 @@ class RecurrentWrapper(ModuleBase):
         return self.inner.get_initial_state(batch_size)
 
     def get_initial_output(self, batch_size):
-        return self.inner.get_initial_output(batch_size)
+        return self.inner.get_initial_output(batch_size).unsqueeze(0)

@@ -1,4 +1,6 @@
 from torch import nn
+import torch
+from typing import Union, Callable, Literal, Optional, Type
 from .base.modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
 from .base.factories import ModuleFactory
 from .base.utils import shape_sum
@@ -9,20 +11,20 @@ class Sequential(ModuleFactory):
         self.module_facs = module_facs
 
 
-    def shape_change(self, in_shape):
+    def _shape_change(self, in_shape):
         cur_shape = in_shape
         for factory in self.module_facs:
-            cur_shape = factory.size_change(cur_shape)
+            cur_shape = factory._shape_change(cur_shape)
         return cur_shape
 
-    def __call__(self, inp_info):
-        child_info = {**inp_info}
+    def _assemble_module(self, in_shape, unrolled):
         mlist = []
+        cur_shape = in_shape
         for factory in self.module_facs:
-            new_module = factory(child_info)
+            new_module = factory._assemble_module(cur_shape, unrolled)
+            cur_shape = factory._shape_change(cur_shape)
             mlist.append(new_module)
-            child_info['in_shape'] = new_module.get_out_shape()
-        return SequentialModule(inp_info['in_shape'], mlist)
+        return SequentialModule(in_shape, mlist)
 
 
 
@@ -31,7 +33,8 @@ class LayerBase:
 
 class Placeholder(LayerBase):
     inputs = set()
-    def __init__(self):
+    def __init__(self, initial_value : Callable[[tuple], torch.Tensor] = None):
+        self.initial_value = initial_value
         self._layer = None
 
     def _get_layer(self):
@@ -48,7 +51,7 @@ class Layer(LayerBase):
         except TypeError:
             self.inputs = (inputs,)
         if not isinstance(factory, ModuleFactory):
-            pass  # TODO: use Sequential
+            self.factory = Sequential(*factory)
         else:
             self.factory = factory
         self.placeholder = placeholder
@@ -102,7 +105,7 @@ class Network(ModuleFactory):
                 inputs = input_no_ph[layer_name]
                 inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum \
                     ([shapes[layer_name] for layer_name in inputs])
-                shapes[layer_name] = self._layers[layer_name].factory.shape_change(inp_shape)
+                shapes[layer_name] = self._layers[layer_name].factory._shape_change(inp_shape)
                 if shapes[layer_name] is not None:
                     found_new = layer_name
                     break
@@ -111,7 +114,7 @@ class Network(ModuleFactory):
         else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
         return shapes, input_shapes
 
-    def shape_change(self, in_shape):
+    def _shape_change(self, in_shape):
         shapes, _ = self._compute_shapes(in_shape)
         return shapes['output']
 
@@ -173,7 +176,7 @@ class Network(ModuleFactory):
                     computed_order.append(node)
             nodes.difference_update(done)
 
-        req_remain = set.union(*[input_names[layer_name] for layer_name in remaining])
+        req_remain = set.union(*([input_names[layer_name] for layer_name in remaining]+[{'output'}]))
         cycle_outputs = {c_name: req_remain.intersection(cycle) for c_name, cycle in full_cycles_dict.items()}
 
         return computed_order, remaining, cycles_dict, new_inputs, cycle_outputs
@@ -181,13 +184,17 @@ class Network(ModuleFactory):
     def _build_inner_network(self, in_shape, order, in_shapes, input_names, recurent):
         module_dict = nn.ModuleDict()
         for layer in order:
-            module_dict[layer] = self._layers[layer].factory.assemble_module(in_shapes[layer], True)
+            module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
         inputs = {layer: input_names[layer] for layer in order}
         return InnerNetworkModule(in_shape, order, inputs, module_dict, recurent)
 
-    def assemble_module(self, in_shape, unrolled):
+    def _assemble_module(self, in_shape, unrolled):
         if not 'output' in self._layers:
             raise Exception('Output layer missing.')
+        initial_values = {}
+        for ph_name, ph in self._ph.items():
+            if ph.initial_value:
+                initial_values[ph_name] = ph.initial_value
         out_shapes, in_shapes = self._compute_shapes(in_shape)
         ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
         input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer.inputs} for layer_name, layer in self._layers.items()}
@@ -200,15 +207,16 @@ class Network(ModuleFactory):
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
                 module_dict_inner = nn.ModuleDict()
                 for layer in cycle:
-                    module_dict_inner[layer] = self._layers[layer].factory.assemble_module(in_shapes[layer], True)
+                    module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
-                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent)
+                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent, init_values)
             for name in outer_layers:
-                module_dict[name] = self._layers[name].factory.assemble_module(in_shapes[name], False)
+                module_dict[name] = self._layers[name].factory._assemble_module(in_shapes[name], False)
             outer_ph_rev = {layer_name: ph_rev[layer_name] for layer_name in set(outer_order).intersection(ph_rev.keys())}
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev)
         else:
-            return self._build_inner_network(in_shape, self._og_order, in_shapes, input_names, ph_lookup)
+            return self._build_inner_network(in_shape, self._og_order, in_shapes, input_names, ph_lookup, initial_values)
 
