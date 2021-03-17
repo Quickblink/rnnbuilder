@@ -26,14 +26,47 @@ class Sequential(ModuleFactory):
             mlist.append(new_module)
         return SequentialModule(in_shape, mlist)
 
+class LayerInput:
+    _mode = 'stack'
 
 
-class LayerBase:
+class LayerBase(LayerInput):
+    def __init__(self):
+        self._registered = False
+
+    def sum(self, *layers: 'LayerBase'):
+        if not self._registered:
+            raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
+        return Sum(self, *layers)
+
+    def stack(self, *layers: 'LayerBase'):
+        if not self._registered:
+            raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
+        return Stack(self, *layers)
+
+    def apply(self, *module_facs, placeholder=None):
+        if not self._registered:
+            raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
+        return Layer(self, module_facs, placeholder=placeholder)
+
+class InputBase(LayerInput):
+    def __init__(self, *layers: LayerBase):
+        self.layers = layers
+
+    def apply(self, *module_facs, placeholder=None):
+        return Layer(self, module_facs, placeholder=placeholder)
+
+class Stack(InputBase):
     pass
+
+class Sum(InputBase):
+    _mode = 'sum'
+
 
 class Placeholder(LayerBase):
     inputs = set()
     def __init__(self, initial_value : Callable[[tuple], torch.Tensor] = None):
+        super().__init__()
         self.initial_value = initial_value
         self._layer = None
 
@@ -44,14 +77,15 @@ class Placeholder(LayerBase):
 
 
 class Layer(LayerBase):
-    def __init__(self, inputs, factory, placeholder=None):
-        try:
-            iter(inputs)
-            self.inputs = inputs
-        except TypeError:
-            self.inputs = (inputs,)
+    def __init__(self, input: LayerInput, factory, placeholder=None):
+        super().__init__()
+        if isinstance(input, InputBase):
+            self.inputs = input.layers
+        else:
+            self.inputs = (input,)
+        self.mode = input._mode
         if not isinstance(factory, ModuleFactory):
-            self.factory = Sequential(*factory)
+            self.factory = factory[0] if len(factory) == 1 else Sequential(*factory)
         else:
             self.factory = factory
         self.placeholder = placeholder
@@ -181,12 +215,7 @@ class Network(ModuleFactory):
 
         return computed_order, remaining, cycles_dict, new_inputs, cycle_outputs
 
-    def _build_inner_network(self, in_shape, order, in_shapes, input_names, recurent):
-        module_dict = nn.ModuleDict()
-        for layer in order:
-            module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
-        inputs = {layer: input_names[layer] for layer in order}
-        return InnerNetworkModule(in_shape, order, inputs, module_dict, recurent)
+
 
     def _assemble_module(self, in_shape, unrolled):
         if not 'output' in self._layers:
@@ -200,6 +229,7 @@ class Network(ModuleFactory):
         input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer.inputs} for layer_name, layer in self._layers.items()}
         input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for layer_name, inputs in input_names.items()}
         input_no_ph['input'] = set()
+        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         if not unrolled:
             module_dict = nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
@@ -212,11 +242,14 @@ class Network(ModuleFactory):
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
-                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent, init_values)
+                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent, init_values, input_modes)
             for name in outer_layers:
                 module_dict[name] = self._layers[name].factory._assemble_module(in_shapes[name], False)
             outer_ph_rev = {layer_name: ph_rev[layer_name] for layer_name in set(outer_order).intersection(ph_rev.keys())}
-            return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev)
+            return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev, input_modes)
         else:
-            return self._build_inner_network(in_shape, self._og_order, in_shapes, input_names, ph_lookup, initial_values)
-
+            module_dict = nn.ModuleDict()
+            for layer in self._og_order:
+                module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
+            inputs = {layer: input_names[layer] for layer in self._og_order}
+            return InnerNetworkModule(in_shape, self._og_order, inputs, module_dict, ph_lookup, initial_values, input_modes)

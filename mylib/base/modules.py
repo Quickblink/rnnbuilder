@@ -68,7 +68,7 @@ class SequentialModule(ModuleBase):
         return self.mlist[-1].get_initial_output(batch_size)
 
 class OuterNetworkModule(ModuleBase):
-    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, cycle_outputs, placeholders_rev):
+    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, cycle_outputs, placeholders_rev, input_modes):
         super().__init__(in_shape)
         self.order = order
         self.layers = layers
@@ -76,6 +76,8 @@ class OuterNetworkModule(ModuleBase):
         self.placeholders_rev = placeholders_rev  # maps from placeholder names to layer names
         self._full_state = False
         self.cycle_outputs = cycle_outputs
+        self.input_modes = input_modes
+
 
     def _run_cycle(self, results, cycle_name, h):
         time, batch = results[next(iter(self.inputs[cycle_name]))].shape[:2]
@@ -110,7 +112,7 @@ class OuterNetworkModule(ModuleBase):
             else:
                 if len(self.inputs[layer_name]) > 1:
                     inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                    x = torch.cat(inputs, dim=-1)
+                    x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
                 else:
                     x = results[next(iter(self.inputs[layer_name]))]
                 results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
@@ -130,13 +132,14 @@ class OuterNetworkModule(ModuleBase):
         return self.layers['output'].get_initial_output(batch_size)
 
 class InnerNetworkModule(ModuleBase):
-    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, recurrent_layers, intial_values):
+    def __init__(self, in_shape, order, inputs, layers: nn.ModuleDict, recurrent_layers, intial_values, input_modes):
         super().__init__(in_shape)
         self.order = order
         self.layers = layers
         self.inputs = inputs
         self.recurrent_layers = recurrent_layers  # maps from placeholder names to layer names
         self.initial_values = intial_values # maps from placeholder names to initial_value functions
+        self.input_modes = input_modes
 
 
     def forward(self, inp, hidden_state):
@@ -146,7 +149,7 @@ class InnerNetworkModule(ModuleBase):
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                x = torch.cat(inputs, dim=-1)
+                x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
             else:
                 x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
@@ -172,7 +175,7 @@ class NestedNetworkModule(InnerNetworkModule):
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                x = torch.cat(inputs, dim=-1)
+                x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
             else:
                 x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
