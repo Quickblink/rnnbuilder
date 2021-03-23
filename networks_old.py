@@ -4,7 +4,7 @@ import copy
 import torch.nn.functional as F
 from torch.distributions.uniform import Uniform
 from threading import Condition
-from mylib.base.utils import StateContainerNew
+from library.src.rnnbuilder.base.utils import StateContainerNew
 
 class BellecSpike(torch.autograd.Function):
 

@@ -107,6 +107,7 @@ class Network(ModuleFactory):
         super().__setattr__(key, value)
         if not isinstance(value, LayerBase):
             return
+        value._registered = True
         if key in self._ph:
             if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):
                 raise Exception('Two placeholders given for a layer.')
