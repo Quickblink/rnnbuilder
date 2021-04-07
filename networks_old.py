@@ -4,7 +4,7 @@ import copy
 import torch.nn.functional as F
 from torch.distributions.uniform import Uniform
 from threading import Condition
-from library.src.rnnbuilder.base.utils import StateContainerNew
+from library.src.rnnbuilder.base._utils import StateContainerNew
 
 class BellecSpike(torch.autograd.Function):
 
@@ -113,7 +113,7 @@ class NetworkModule(nn.Module):
         self.recurrent_layers = set()
         #print(paths)
         for path in paths:
-            for input in path.inputs:
+            for input in path._inputs:
                 if input not in sizes:
                     self.recurrent_layers.add(input)
             sizes[path.name] = path.deduce_size(sizes)
@@ -123,8 +123,8 @@ class NetworkModule(nn.Module):
         for path in paths:
             self.paths[path.name] = nn.ModuleList()
             self.order.append(path.name)
-            self.inputs[path.name] = path.inputs
-            cur_size = sizes[path.inputs[0]] if len(path.inputs) == 1 else torch.tensor([sizes[x] for x in path.inputs]).sum().item()
+            self.inputs[path.name] = path._inputs
+            cur_size = sizes[path._inputs[0]] if len(path._inputs) == 1 else torch.tensor([sizes[x] for x in path._inputs]).sum().item()
             for factory in path.strand:
                 new_module = factory(cur_size)
                 self.paths[path.name].append(new_module)

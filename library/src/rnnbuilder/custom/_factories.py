@@ -1,8 +1,8 @@
 import torch
 
-from ..base.factories import ModuleFactory
-from ..base.utils import flatten_shape
-from .modules import StatelessWrapper, RecurrentWrapper
+from .. import ModuleFactory
+from ..base._utils import flatten_shape
+from ._modules import StatelessWrapper, RecurrentWrapper
 
 class NonRecurrentFactory(ModuleFactory):
     def __init__(self, make_module, prepare_input, shape_change_method, *args, **kwargs):

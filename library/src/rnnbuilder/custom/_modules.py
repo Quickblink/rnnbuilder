@@ -1,7 +1,7 @@
 import torch
 
-from ..base.modules import ModuleBase
-from ..base.utils import StateContainerNew
+from ..base._modules import ModuleBase
+from ..base._utils import StateContainerNew
 
 class StatelessWrapper(ModuleBase):
     def __init__(self, in_shape, out_shape, inner):

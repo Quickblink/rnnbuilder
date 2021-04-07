@@ -1,0 +1,1 @@
+A package for building modular recurrent models in an easy keras-inspired way. More documentation will follow soon.

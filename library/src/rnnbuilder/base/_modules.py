@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .utils import StateContainerNew
+from ._utils import StateContainerNew
 
 class ModuleBase(nn.Module):
     def __init__(self, in_shape):
@@ -41,7 +41,7 @@ class OuterModule(nn.Module):
 
     def forward_log(self, x, h):
         pass
-        # only single step inputs?
+        # only single step _inputs?
 
     def get_initial_state(self, batch_size):
         return self.inner.get_initial_state(batch_size)
