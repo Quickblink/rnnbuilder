@@ -1,12 +1,62 @@
 """
-Test main docstring
+rnnbuilder is a library for building PyTorch models in a modular way.
+
+##Modules and Factories
+Instead of building networks from modules directly, this library uses separate factory objects. They are used as
+specification for a network or sub-network and can be invoked to yield independent models from that specification.
+
+Classic PyTorch code:
+```
+input_shape = (10,)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
+
+input = torch.rand(input_shape)
+output = model(input)
+```
+The above code applies a matrix multiplication with a *single weight matrix* twice to the input.
+
+rnnbuilder **(not equivalent)**:
+```
+input_shape = (7,)
+linear = rnnbuilder.nn.Linear(out_features=10)
+sequential = rnnbuilder.Sequential(linear, linear)
+model = sequential.make_model(input_shape)
+
+input = torch.rand(input_shape)
+output = model(input)
+```
+This code does not reuse any layers. Instead it will initialize a model with two separate linear layers, both with an
+output size of 10. The first has in_features=7 and the second in_features=10. The model is generated with an additional
+call to the outermost factory, in this case 'sequential'.
+
+The use of factory classes replaces the need to define classes for every architecture and offers lazy initialization
+without the need to precalculate the size of inputs (more useful for convolutions and recurrent layers).
+
+##Network class
+The `Network` class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
+to gain an overview of what is possible.
+
+##Modules
+rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
+signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
+and SNN modules are provided under the corresponding submodules.
+
+If you need to use any other modules, `rnnbuilder.custom` provides a base class and registration methods to retrieve
+corresponding factory classes.
+
+
+
 """
+#TODO: make nn module and test example
+#TODO: implement list input
 from torch import nn
 import torch
 from typing import Union, Callable, Iterable
 from .base._modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
 from .base import ModuleFactory, LayerInput, LayerBase, InputBase
 from .base._utils import shape_sum
+from . import custom
 
 
 
@@ -53,8 +103,7 @@ class Placeholder(LayerBase):
 
     Args:
         initial_value: Optional; function that returns the initial output value used for the first step /
-            initial state. Per default `base.BaseModule.get_initial_output` is used instead, which returns zeros unless
-            overwritten by the `Layer`'s class."""
+            initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`'s class."""
     _inputs = set()
 
     def __init__(self, initial_value: Callable[[tuple], torch.Tensor] = None):
@@ -128,8 +177,10 @@ class Network(ModuleFactory):
 
     def __setattr__(self, key, value):
         super().__setattr__(key, value)
-        if not isinstance(value, LayerBase):
+        if not isinstance(value, LayerInput):
             return
+        if isinstance(value, InputBase):
+            value = value.apply(ModuleFactory())
         value._registered = True
         if key in self._ph:
             if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):

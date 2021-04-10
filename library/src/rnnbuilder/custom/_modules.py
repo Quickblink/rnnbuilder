@@ -16,8 +16,6 @@ class StatelessWrapper(ModuleBase):
         x = self.inner(x)
         return x.reshape((time, batch)+self.out_shape), ()
 
-    def get_initial_output(self, batch_size):
-        return torch.zeros((1, batch_size)+self.out_shape, device=self.device)
 
 
 class RecurrentWrapper(ModuleBase):
@@ -52,4 +50,4 @@ class RecurrentWrapper(ModuleBase):
         return self.inner.get_initial_state(batch_size)
 
     def get_initial_output(self, batch_size):
-        return self.inner.get_initial_output(batch_size).unsqueeze(0)
+        return self.inner.get_initial_output((1, batch_size)+self.out_shape)

@@ -1,8 +1,11 @@
 """Functions to extend this library with custom modules"""
 from typing import Union, Callable, Literal, Optional, Type
 from torch import nn
+import torch
 from ._factories import NonRecurrentFactory, RecurrentFactory
 from abc import ABC, abstractmethod
+
+__pdoc__ = {'CustomModule.training' : False, 'CustomModule.dump_patches' : False}
 
 
 class CustomModule(nn.Module, ABC):
@@ -17,10 +20,29 @@ class CustomModule(nn.Module, ABC):
         """
         pass
 
-    def get_initial_output(self, batch_size): #TODO: base? change signature to include shape?
-        """Returns the initial output used for `Placeholder`s. This defaults to zero and can be overwritten by
-        individual `Placerholder`s"""
+    @abstractmethod
+    def get_out_shape(self, in_shape):
+        """
+        Args:
+            in_shape: data shape of incoming tensor (excluding time and batch dimensions) before any flattening is
+                applied
+
+        In most cases, one of three values should be returned:
+        1. 'in_shape' if the module does not perform changes to the shape of the data (flattening does not count)
+        2. some_fixed_shape if the output shape is independent of the input e.g. (out_shape,) for Linear layers
+        3. 'None' in all other cases (output shape will be inferred automatically)
+        """
         pass
+
+    def get_initial_output(self, full_shape):
+        """Returns the initial output used for `Placeholder`s. This defaults to zero and can be overwritten by
+        individual `Placeholder`s.
+
+        Args:
+            full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
+                always be 1.
+        """
+        return torch.zeros(full_shape, device=self.device)
 
     @abstractmethod
     def forward(self, input, state):
@@ -53,31 +75,55 @@ class _NonRecurrentGenerator:
         return NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
 
 
-def register_non_recurrent(*, module_class: Union[Type[nn.Module], Callable[..., nn.Module]],
-                                 prepare_input: Literal['flatten', 'keep'] = 'keep',
-                                 shape_change: Union[Literal['none', 'auto'], Callable[..., tuple]]):
-    initializer = (lambda in_shape, *args, **kwargs: module_class(*args, **kwargs)) if type(module_class) is type else module_class
-    return _NonRecurrentGenerator(initializer, prepare_input, shape_change)
+def register_non_recurrent(*, module_class: Type[nn.Module],
+                                 flatten_input: bool,
+                                 shape_change: bool):
+    """Register a (non-recurrent) torch.nn.Module to retrieve a factory class. The factory class will initialize with
+    the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
+    `CustomModule` and use `register_recurrent` instead.
+
+    Args:
+        module_class: a class derived from torch.nn.Module. The forward method needs to conform to a fixed signature.
+            It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
+        flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
+        shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
+            (after the optional flatten) and output shapes of the module are identical otherwise True
+    """
+    initializer = (lambda in_shape, *args, **kwargs: module_class(*args, **kwargs))\
+        if type(module_class) is type else module_class #TODO: remove initializer
+    return _NonRecurrentGenerator(initializer, 'flatten' if flatten_input else 'keep',
+                                  'auto' if shape_change else 'none')
 
 
 class _RecurrentGenerator:
-    def __init__(self, module_class, prepare_input, single_step, unroll_full_state, shape_change_method):
+    def __init__(self, module_class, prepare_input, single_step, unroll_full_state):
         self._module_class = module_class
         self._prepare_input = prepare_input
         self._single_step = single_step
         self._unroll_full_state = unroll_full_state
-        self._shape_change_method = shape_change_method
 
     def __call__(self, *args, **kwargs):
         return RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
-                                self._shape_change_method, *args, **kwargs)
+                                *args, **kwargs)
 
-# TODO: merge single_step and unroll_full_state into one string variable
-def register_recurrent(*, module_class: Type[CustomModule], prepare_input: Literal['flatten', 'keep'] = 'keep',
-                       single_step: bool, unroll_full_state: bool = True,
-                       shape_change: Union[Literal['none', 'auto'], Callable[[Optional[tuple]], tuple]]):
-    return _RecurrentGenerator(module_class, prepare_input, single_step, unroll_full_state, shape_change)
+def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
+                       single_step: bool, unroll_full_state: bool = True):
+    """Register a (possibly recurrent) `CustomModule` to retrieve a factory class. The factory class will initialize
+    with the same parameters as the registered `CustomModule`.
 
+    Args:
+        module_class: a class derived from `CustomModule`
+        flatten_input: If True, the input is flattened to a single data dimension before given to the module.
+        single_step: If True, for each time step the forward method of the module will be invoked with a tensor of
+            format (batch, data_shape). If False, it will be only invoked once with a tensor of format
+            (time, batch, data_shape).
+        unroll_full_state: (Optional) If True and the state for every time step is required (full_state mode), the
+            module will be invoked for each time step even if single_step=False. If False, the module has to check for
+            self._full_state and return a sequence of states appropriately
+    """
+    if module_class.__abstractmethods__:
+        raise Exception("Can't register "+module_class.__name__+". All abstract methods need to be overwritten.")
+    return _RecurrentGenerator(module_class, 'flatten' if flatten_input else 'keep', single_step, unroll_full_state)
 
 
 

@@ -1,5 +1,5 @@
 """Base classes not intended for direct use."""
-from ._modules import OuterModule
+from ._modules import OuterModule, ModuleBase
 import rnnbuilder as rb
 
 class ModuleFactory:
@@ -11,23 +11,12 @@ class ModuleFactory:
         """
         return OuterModule(self._assemble_module(in_shape, False))
 
-    '''
-    def __init__(self):
-        self.module_class = None
-        self.args = None
+    def _assemble_module(self, in_shape, unrolled):
+        return ModuleBase(in_shape)
 
-    def shape_change(self, in_shape):
+    def _shape_change(self, in_shape):
         return in_shape
 
-    def make_module(self, in_shape):
-        return self.module_class(in_shape, *self.args)
-
-    def assemble_module(self, in_shape, unrolled):
-        return self.make_module(in_shape)
-
-    def __call__(self, in_size):
-        return self.module_class(in_size, *self.args)
-    '''
 
 
 class LayerInput:

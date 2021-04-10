@@ -6,10 +6,17 @@ from ._utils import StateContainerNew
 class ModuleBase(nn.Module):
     def __init__(self, in_shape):
         super().__init__()
-        self.in_shape = in_shape
+        self.out_shape = in_shape
 
     def get_initial_state(self, batch_size):
         return ()
+
+    def forward(self, x, h):
+        return x, h
+
+    def get_initial_output(self, batch_size):
+        return torch.zeros((1, batch_size) + self.out_shape, device=self.device)
+
 
 
 
