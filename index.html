@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>rnnbuilder API documentation</title>
+<meta name="description" content="rnnbuilder is a library for building PyTorch models in a modular way …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>rnnbuilder</code></h1>
+</header>
+<section id="section-intro">
+<p>rnnbuilder is a library for building PyTorch models in a modular way.</p>
+<h2 id="modules-and-factories">Modules and Factories</h2>
+<p>Instead of building networks from modules directly, this library uses separate factory objects. They are used as
+specification for a network or sub-network and can be invoked to yield independent models from that specification.</p>
+<p>Classic PyTorch code:</p>
+<pre><code>input_shape = (10,)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
+
+input = torch.rand(input_shape)
+output = model(input)
+</code></pre>
+<p>The above code applies a matrix multiplication with a <em>single weight matrix</em> twice to the input.</p>
+<p>rnnbuilder <strong>(not equivalent)</strong>:</p>
+<pre><code>input_shape = (7,)
+linear = rnnbuilder.nn.Linear(out_features=10)
+sequential = rnnbuilder.Sequential(linear, linear)
+model = sequential.make_model(input_shape)
+
+input = torch.rand(input_shape)
+output = model(input)
+</code></pre>
+<p>This code does not reuse any layers. Instead it will initialize a model with two separate linear layers, both with an
+output size of 10. The first has in_features=7 and the second in_features=10. The model is generated with an additional
+call to the outermost factory, in this case 'sequential'.</p>
+<p>The use of factory classes replaces the need to define classes for every architecture and offers lazy initialization
+without the need to precalculate the size of inputs (more useful for convolutions and recurrent layers).</p>
+<h2 id="network-class">Network class</h2>
+<p>The <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
+to gain an overview of what is possible.</p>
+<h2 id="modules">Modules</h2>
+<p>rnnbuilder provides a number of factories for standard torch modules under <code>rnnbuilder.nn</code>. These have identical
+signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
+and SNN modules are provided under the corresponding submodules.</p>
+<p>If you need to use any other modules, <code><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code> provides a base class and registration methods to retrieve
+corresponding factory classes.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+rnnbuilder is a library for building PyTorch models in a modular way.
+
+##Modules and Factories
+Instead of building networks from modules directly, this library uses separate factory objects. They are used as
+specification for a network or sub-network and can be invoked to yield independent models from that specification.
+
+Classic PyTorch code:
+```
+input_shape = (10,)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
+
+input = torch.rand(input_shape)
+output = model(input)
+```
+The above code applies a matrix multiplication with a *single weight matrix* twice to the input.
+
+rnnbuilder **(not equivalent)**:
+```
+input_shape = (7,)
+linear = rnnbuilder.nn.Linear(out_features=10)
+sequential = rnnbuilder.Sequential(linear, linear)
+model = sequential.make_model(input_shape)
+
+input = torch.rand(input_shape)
+output = model(input)
+```
+This code does not reuse any layers. Instead it will initialize a model with two separate linear layers, both with an
+output size of 10. The first has in_features=7 and the second in_features=10. The model is generated with an additional
+call to the outermost factory, in this case &#39;sequential&#39;.
+
+The use of factory classes replaces the need to define classes for every architecture and offers lazy initialization
+without the need to precalculate the size of inputs (more useful for convolutions and recurrent layers).
+
+##Network class
+The `Network` class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
+to gain an overview of what is possible.
+
+##Modules
+rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
+signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
+and SNN modules are provided under the corresponding submodules.
+
+If you need to use any other modules, `rnnbuilder.custom` provides a base class and registration methods to retrieve
+corresponding factory classes.
+
+
+
+&#34;&#34;&#34;
+#TODO: make nn module and test example
+#TODO: implement list input
+from torch import nn
+import torch
+from typing import Union, Callable, Iterable
+from .base._modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
+from .base import ModuleFactory, LayerInput, LayerBase, InputBase
+from .base._utils import shape_sum
+from . import custom
+
+
+
+
+class Sequential(ModuleFactory):
+    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+    The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
+
+    def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
+        super().__init__()
+        self.module_facs = module_factory if all([isinstance(m, ModuleFactory) for m in module_factory]) \
+            else list(module_factory[0])
+
+    def _shape_change(self, in_shape):
+        cur_shape = in_shape
+        for factory in self.module_facs:
+            cur_shape = factory._shape_change(cur_shape)
+        return cur_shape
+
+    def _assemble_module(self, in_shape, unrolled):
+        mlist = []
+        cur_shape = in_shape
+        for factory in self.module_facs:
+            new_module = factory._assemble_module(cur_shape, unrolled)
+            cur_shape = factory._shape_change(cur_shape)
+            mlist.append(new_module)
+        return SequentialModule(in_shape, mlist)
+
+
+class Stack(InputBase):
+    &#34;&#34;&#34;Stacks inputs along the first data dimension using `torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    pass
+
+
+class Sum(InputBase):
+    &#34;&#34;&#34;adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    _mode = &#39;sum&#39;
+
+
+class Placeholder(LayerBase):
+    &#34;&#34;&#34;Can be assigned as an attribute to a `Network` to represent a layer output of the previous time step. Needs to be
+    linked to a `Layer` by either overwriting the attribute with a `Layer` or handing it directly to the `Layer` as an
+    optional initialization parameter.
+
+    Args:
+        initial_value: Optional; function that returns the initial output value used for the first step /
+            initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`&#39;s class.&#34;&#34;&#34;
+    _inputs = set()
+
+    def __init__(self, initial_value: Callable[[tuple], torch.Tensor] = None):
+        super().__init__()
+        self.initial_value = initial_value
+        self._layer = None
+
+    def _get_layer(self):
+        if self._layer is None:
+            raise Exception(&#39;Placeholder not assigned to layer.&#39;)
+        return self._layer
+
+
+class Layer(LayerBase):
+    &#34;&#34;&#34;Can be assigned as attribute to a `Network` as its main building block. When assigned to an attribute holding a
+    `Placeholder`, they are linked automatically.
+
+    Args:
+        input: The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
+            network), n.some_layer, n.some_placeholder or an input aggregation (`Sum` or `Stack`).
+        factory: Either a single `ModuleFactory` or an iterable of `ModuleFactory`s that is automatically wrapped by a
+            `Sequential`.
+        placeholder: (optional) A `Placeholder` to link to this layer. This can be useful if the placeholder is still
+            required after layer definition (prohibiting overwriting the attribute as described above)
+
+    &#34;&#34;&#34;
+    def __init__(self, input: LayerInput, factory: Union[ModuleFactory, Iterable[ModuleFactory]],
+                 placeholder: Placeholder = None):
+        super().__init__()
+        if isinstance(input, InputBase):
+            self._inputs = input.layers
+        else:
+            self._inputs = (input,)
+        self.mode = input._mode
+        if not isinstance(factory, ModuleFactory):
+            factory = list(factory)
+            self.factory = factory[0] if len(factory) == 1 else Sequential(*factory)
+        else:
+            self.factory = factory
+        self.placeholder = placeholder
+        if placeholder:
+            placeholder._layer = self
+
+
+class Network(ModuleFactory):
+    &#34;&#34;&#34;Main class for dynamic network building. After initialization, `Layer`s and `Placeholder`s can be added in the
+    form of attributes. The input to the network is available as an attribute &#39;input&#39; and the the user is required to
+    define a layer called &#39;output&#39;. There are multiple supported methods to assemble a layer.
+
+    Example:
+        ```
+        &gt;&gt;&gt;n = Network()
+        ...n.first_layer_prev = Placeholder()
+        ...n.first_layer = Layer(Stack(n.input, n.first_layer_prev), some_factory1, placeholder=n.first_layer_prev)
+        ...n.second_layer = n.first_layer_prev.stack(n.input).apply(some_factory2)
+        ...n.output = n.second_layer.apply(some_factory3)
+        ```
+
+    The assembled object is a `ModuleFactory` that can be used like any other. It automatically detects cycles and
+    unrolls execution where necessary.
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        super().__init__()  # TODO: check setattr calls in this
+        self._layers = {}
+        self._ph = {}
+        self._reverse_laph = {}
+        self._og_order = []
+        self.input = Placeholder()
+        del self._ph[&#39;input&#39;]
+
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if not isinstance(value, LayerInput):
+            return
+        if isinstance(value, InputBase):
+            value = value.apply(ModuleFactory())
+        value._registered = True
+        if key in self._ph:
+            if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):
+                raise Exception(&#39;Two placeholders given for a layer.&#39;)
+            self._ph[key]._layer = value
+            self._ph[key + &#39;_ph&#39;] = self._ph[key]
+            self._reverse_laph[self._ph[key]] = key + &#39;_ph&#39;
+            del self._ph[key]
+        if key in self._layers:
+            raise Exception(&#39;Overwriting layers with other layers is not allowed.&#39;)
+        if isinstance(value, Layer):
+            for input in value._inputs:
+                if input not in self._reverse_laph:
+                    raise Exception(&#39;Input is not in network.&#39;)
+            self._layers[key] = value
+            self._og_order.append(key)
+        if isinstance(value, Placeholder):
+            self._ph[key] = value
+        self._reverse_laph[value] = key
+
+    def _compute_shapes(self, in_shape):
+        ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
+        input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
+                       self._layers.items()}
+        input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
+                       layer_name, inputs in input_names.items()}
+        shapes = {&#39;input&#39;: in_shape, **{layer: None for layer in self._layers}}
+        layers = set(self._layers)
+        while layers:
+            found_new = None
+            for layer_name in layers:
+                inputs = input_no_ph[layer_name]
+                inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum \
+                    ([shapes[layer_name] for layer_name in inputs])
+                shapes[layer_name] = self._layers[layer_name].factory._shape_change(inp_shape)
+                if shapes[layer_name] is not None:
+                    found_new = layer_name
+                    break
+            layers.remove(found_new)
+        input_shapes = {layer_name: shapes[next(iter(input_no_ph[layer_name]))] if len(input_no_ph[layer_name]) == 1
+        else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
+        return shapes, input_shapes
+
+    def _shape_change(self, in_shape):
+        shapes, _ = self._compute_shapes(in_shape)
+        return shapes[&#39;output&#39;]
+
+    def _compute_execution_order(self, input_no_ph, input_names, ph_rev):
+
+        # Find reachables
+        reachable = {}
+        for path, inp_list in input_no_ph.items():
+            visited = {*inp_list}
+            todo = {*inp_list}
+            while todo:
+                todo.update(set(input_no_ph[todo.pop()]).difference(visited))
+                visited.update(todo)
+            reachable[path] = visited
+
+        i = 0
+        cycles_dict = {}
+        full_cycles_dict = {}
+        in_cycles = set()
+        for path, reach in reachable.items():
+            if path in in_cycles:
+                continue
+            cycle_with = []
+            for other in reach:
+                if path in reachable[other]:
+                    cycle_with.append(other)
+            if cycle_with:
+                cycle_with.sort(key=self._og_order.index)
+                cycles_dict[f&#39;c{i}&#39;] = cycle_with
+                full_cycles_dict[f&#39;c{i}&#39;] = set(cycle_with)
+                for layer_name in cycle_with:
+                    if layer_name in ph_rev:
+                        full_cycles_dict[f&#39;c{i}&#39;].add(ph_rev[layer_name])
+                i += 1
+                in_cycles.update(cycle_with)
+        remaining = set(self._og_order).difference(in_cycles)
+
+        requirements = {**input_no_ph}
+        new_inputs = {layer_name: input_names[layer_name] for layer_name in remaining}
+        for c_name, cycle in cycles_dict.items():
+            req = set()
+            req2 = set()
+            for path in cycle:
+                req.update(input_no_ph[path])
+                req2.update(input_names[path])
+            requirements[c_name] = req.difference(cycle)
+            new_inputs[c_name] = req.difference(full_cycles_dict[c_name])
+
+        nodes = remaining.union(cycles_dict.keys())
+        computed_order = []
+        done = {&#39;input&#39;}
+        while nodes:
+            for node in nodes:
+                if requirements[node].issubset(done):
+                    done.add(node)
+                    if node in cycles_dict:
+                        done.update(cycles_dict[node])
+                    computed_order.append(node)
+            nodes.difference_update(done)
+
+        req_remain = set.union(*([input_names[layer_name] for layer_name in remaining] + [{&#39;output&#39;}]))
+        cycle_outputs = {c_name: req_remain.intersection(cycle) for c_name, cycle in full_cycles_dict.items()}
+
+        return computed_order, remaining, cycles_dict, new_inputs, cycle_outputs
+
+    def _assemble_module(self, in_shape, unrolled):
+        if not &#39;output&#39; in self._layers:
+            raise Exception(&#39;Output layer missing.&#39;)
+        initial_values = {}
+        for ph_name, ph in self._ph.items():
+            if ph.initial_value:
+                initial_values[ph_name] = ph.initial_value
+        out_shapes, in_shapes = self._compute_shapes(in_shape)
+        ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
+        input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
+                       self._layers.items()}
+        input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
+                       layer_name, inputs in input_names.items()}
+        input_no_ph[&#39;input&#39;] = set()
+        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
+        if not unrolled:
+            module_dict = nn.ModuleDict()
+            ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
+            outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
+                (input_no_ph, input_names, ph_rev)
+            for name, cycle in cycles_layers.items():
+                recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
+                module_dict_inner = nn.ModuleDict()
+                for layer in cycle:
+                    module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
+                inputs = {layer: input_names[layer] for layer in cycle}
+                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent,
+                                                        init_values, input_modes)
+            for name in outer_layers:
+                module_dict[name] = self._layers[name].factory._assemble_module(in_shapes[name], False)
+            outer_ph_rev = {layer_name: ph_rev[layer_name] for layer_name in
+                            set(outer_order).intersection(ph_rev.keys())}
+            return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
+                                      input_modes)
+        else:
+            module_dict = nn.ModuleDict()
+            for layer in self._og_order:
+                module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
+            inputs = {layer: input_names[layer] for layer in self._og_order}
+            return InnerNetworkModule(in_shape, self._og_order, inputs, module_dict, ph_lookup, initial_values,
+                                      input_modes)</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="rnnbuilder.base" href="base/index.html">rnnbuilder.base</a></code></dt>
+<dd>
+<div class="desc"><p>Base classes not intended for direct use.</p></div>
+</dd>
+<dt><code class="name"><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code></dt>
+<dd>
+<div class="desc"><p>Functions to extend this library with custom modules</p></div>
+</dd>
+<dt><code class="name"><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="rnnbuilder.Layer"><code class="flex name class">
+<span>class <span class="ident">Layer</span></span>
+<span>(</span><span>input: <a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a>, factory: Union[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>, Iterable[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>]], placeholder: <a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a> = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Can be assigned as attribute to a <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> as its main building block. When assigned to an attribute holding a
+<code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code>, they are linked automatically.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>input</code></strong></dt>
+<dd>The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
+network), n.some_layer, n.some_placeholder or an input aggregation (<code><a title="rnnbuilder.Sum" href="#rnnbuilder.Sum">Sum</a></code> or <code><a title="rnnbuilder.Stack" href="#rnnbuilder.Stack">Stack</a></code>).</dd>
+<dt><strong><code>factory</code></strong></dt>
+<dd>Either a single <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s that is automatically wrapped by a
+<code><a title="rnnbuilder.Sequential" href="#rnnbuilder.Sequential">Sequential</a></code>.</dd>
+<dt><strong><code>placeholder</code></strong></dt>
+<dd>(optional) A <code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code> to link to this layer. This can be useful if the placeholder is still
+required after layer definition (prohibiting overwriting the attribute as described above)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Layer(LayerBase):
+    &#34;&#34;&#34;Can be assigned as attribute to a `Network` as its main building block. When assigned to an attribute holding a
+    `Placeholder`, they are linked automatically.
+
+    Args:
+        input: The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
+            network), n.some_layer, n.some_placeholder or an input aggregation (`Sum` or `Stack`).
+        factory: Either a single `ModuleFactory` or an iterable of `ModuleFactory`s that is automatically wrapped by a
+            `Sequential`.
+        placeholder: (optional) A `Placeholder` to link to this layer. This can be useful if the placeholder is still
+            required after layer definition (prohibiting overwriting the attribute as described above)
+
+    &#34;&#34;&#34;
+    def __init__(self, input: LayerInput, factory: Union[ModuleFactory, Iterable[ModuleFactory]],
+                 placeholder: Placeholder = None):
+        super().__init__()
+        if isinstance(input, InputBase):
+            self._inputs = input.layers
+        else:
+            self._inputs = (input,)
+        self.mode = input._mode
+        if not isinstance(factory, ModuleFactory):
+            factory = list(factory)
+            self.factory = factory[0] if len(factory) == 1 else Sequential(*factory)
+        else:
+            self.factory = factory
+        self.placeholder = placeholder
+        if placeholder:
+            placeholder._layer = self</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></li>
+<li><a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.LayerBase.apply" href="base/index.html#rnnbuilder.base.LayerBase.apply">apply</a></code></li>
+<li><code><a title="rnnbuilder.base.LayerBase.stack" href="base/index.html#rnnbuilder.base.LayerBase.stack">stack</a></code></li>
+<li><code><a title="rnnbuilder.base.LayerBase.sum" href="base/index.html#rnnbuilder.base.LayerBase.sum">sum</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.Network"><code class="flex name class">
+<span>class <span class="ident">Network</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Main class for dynamic network building. After initialization, <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code>s and <code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code>s can be added in the
+form of attributes. The input to the network is available as an attribute 'input' and the the user is required to
+define a layer called 'output'. There are multiple supported methods to assemble a layer.</p>
+<h2 id="example">Example</h2>
+<pre><code>&gt;&gt;&gt;n = Network()
+...n.first_layer_prev = Placeholder()
+...n.first_layer = Layer(Stack(n.input, n.first_layer_prev), some_factory1, placeholder=n.first_layer_prev)
+...n.second_layer = n.first_layer_prev.stack(n.input).apply(some_factory2)
+...n.output = n.second_layer.apply(some_factory3)
+</code></pre>
+<p>The assembled object is a <code>ModuleFactory</code> that can be used like any other. It automatically detects cycles and
+unrolls execution where necessary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Network(ModuleFactory):
+    &#34;&#34;&#34;Main class for dynamic network building. After initialization, `Layer`s and `Placeholder`s can be added in the
+    form of attributes. The input to the network is available as an attribute &#39;input&#39; and the the user is required to
+    define a layer called &#39;output&#39;. There are multiple supported methods to assemble a layer.
+
+    Example:
+        ```
+        &gt;&gt;&gt;n = Network()
+        ...n.first_layer_prev = Placeholder()
+        ...n.first_layer = Layer(Stack(n.input, n.first_layer_prev), some_factory1, placeholder=n.first_layer_prev)
+        ...n.second_layer = n.first_layer_prev.stack(n.input).apply(some_factory2)
+        ...n.output = n.second_layer.apply(some_factory3)
+        ```
+
+    The assembled object is a `ModuleFactory` that can be used like any other. It automatically detects cycles and
+    unrolls execution where necessary.
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        super().__init__()  # TODO: check setattr calls in this
+        self._layers = {}
+        self._ph = {}
+        self._reverse_laph = {}
+        self._og_order = []
+        self.input = Placeholder()
+        del self._ph[&#39;input&#39;]
+
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if not isinstance(value, LayerInput):
+            return
+        if isinstance(value, InputBase):
+            value = value.apply(ModuleFactory())
+        value._registered = True
+        if key in self._ph:
+            if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):
+                raise Exception(&#39;Two placeholders given for a layer.&#39;)
+            self._ph[key]._layer = value
+            self._ph[key + &#39;_ph&#39;] = self._ph[key]
+            self._reverse_laph[self._ph[key]] = key + &#39;_ph&#39;
+            del self._ph[key]
+        if key in self._layers:
+            raise Exception(&#39;Overwriting layers with other layers is not allowed.&#39;)
+        if isinstance(value, Layer):
+            for input in value._inputs:
+                if input not in self._reverse_laph:
+                    raise Exception(&#39;Input is not in network.&#39;)
+            self._layers[key] = value
+            self._og_order.append(key)
+        if isinstance(value, Placeholder):
+            self._ph[key] = value
+        self._reverse_laph[value] = key
+
+    def _compute_shapes(self, in_shape):
+        ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
+        input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
+                       self._layers.items()}
+        input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
+                       layer_name, inputs in input_names.items()}
+        shapes = {&#39;input&#39;: in_shape, **{layer: None for layer in self._layers}}
+        layers = set(self._layers)
+        while layers:
+            found_new = None
+            for layer_name in layers:
+                inputs = input_no_ph[layer_name]
+                inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum \
+                    ([shapes[layer_name] for layer_name in inputs])
+                shapes[layer_name] = self._layers[layer_name].factory._shape_change(inp_shape)
+                if shapes[layer_name] is not None:
+                    found_new = layer_name
+                    break
+            layers.remove(found_new)
+        input_shapes = {layer_name: shapes[next(iter(input_no_ph[layer_name]))] if len(input_no_ph[layer_name]) == 1
+        else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
+        return shapes, input_shapes
+
+    def _shape_change(self, in_shape):
+        shapes, _ = self._compute_shapes(in_shape)
+        return shapes[&#39;output&#39;]
+
+    def _compute_execution_order(self, input_no_ph, input_names, ph_rev):
+
+        # Find reachables
+        reachable = {}
+        for path, inp_list in input_no_ph.items():
+            visited = {*inp_list}
+            todo = {*inp_list}
+            while todo:
+                todo.update(set(input_no_ph[todo.pop()]).difference(visited))
+                visited.update(todo)
+            reachable[path] = visited
+
+        i = 0
+        cycles_dict = {}
+        full_cycles_dict = {}
+        in_cycles = set()
+        for path, reach in reachable.items():
+            if path in in_cycles:
+                continue
+            cycle_with = []
+            for other in reach:
+                if path in reachable[other]:
+                    cycle_with.append(other)
+            if cycle_with:
+                cycle_with.sort(key=self._og_order.index)
+                cycles_dict[f&#39;c{i}&#39;] = cycle_with
+                full_cycles_dict[f&#39;c{i}&#39;] = set(cycle_with)
+                for layer_name in cycle_with:
+                    if layer_name in ph_rev:
+                        full_cycles_dict[f&#39;c{i}&#39;].add(ph_rev[layer_name])
+                i += 1
+                in_cycles.update(cycle_with)
+        remaining = set(self._og_order).difference(in_cycles)
+
+        requirements = {**input_no_ph}
+        new_inputs = {layer_name: input_names[layer_name] for layer_name in remaining}
+        for c_name, cycle in cycles_dict.items():
+            req = set()
+            req2 = set()
+            for path in cycle:
+                req.update(input_no_ph[path])
+                req2.update(input_names[path])
+            requirements[c_name] = req.difference(cycle)
+            new_inputs[c_name] = req.difference(full_cycles_dict[c_name])
+
+        nodes = remaining.union(cycles_dict.keys())
+        computed_order = []
+        done = {&#39;input&#39;}
+        while nodes:
+            for node in nodes:
+                if requirements[node].issubset(done):
+                    done.add(node)
+                    if node in cycles_dict:
+                        done.update(cycles_dict[node])
+                    computed_order.append(node)
+            nodes.difference_update(done)
+
+        req_remain = set.union(*([input_names[layer_name] for layer_name in remaining] + [{&#39;output&#39;}]))
+        cycle_outputs = {c_name: req_remain.intersection(cycle) for c_name, cycle in full_cycles_dict.items()}
+
+        return computed_order, remaining, cycles_dict, new_inputs, cycle_outputs
+
+    def _assemble_module(self, in_shape, unrolled):
+        if not &#39;output&#39; in self._layers:
+            raise Exception(&#39;Output layer missing.&#39;)
+        initial_values = {}
+        for ph_name, ph in self._ph.items():
+            if ph.initial_value:
+                initial_values[ph_name] = ph.initial_value
+        out_shapes, in_shapes = self._compute_shapes(in_shape)
+        ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
+        input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
+                       self._layers.items()}
+        input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
+                       layer_name, inputs in input_names.items()}
+        input_no_ph[&#39;input&#39;] = set()
+        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
+        if not unrolled:
+            module_dict = nn.ModuleDict()
+            ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
+            outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
+                (input_no_ph, input_names, ph_rev)
+            for name, cycle in cycles_layers.items():
+                recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
+                module_dict_inner = nn.ModuleDict()
+                for layer in cycle:
+                    module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
+                inputs = {layer: input_names[layer] for layer in cycle}
+                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent,
+                                                        init_values, input_modes)
+            for name in outer_layers:
+                module_dict[name] = self._layers[name].factory._assemble_module(in_shapes[name], False)
+            outer_ph_rev = {layer_name: ph_rev[layer_name] for layer_name in
+                            set(outer_order).intersection(ph_rev.keys())}
+            return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
+                                      input_modes)
+        else:
+            module_dict = nn.ModuleDict()
+            for layer in self._og_order:
+                module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
+            inputs = {layer: input_names[layer] for layer in self._og_order}
+            return InnerNetworkModule(in_shape, self._og_order, inputs, module_dict, ph_lookup, initial_values,
+                                      input_modes)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.ModuleFactory.make_model" href="base/index.html#rnnbuilder.base.ModuleFactory.make_model">make_model</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.Placeholder"><code class="flex name class">
+<span>class <span class="ident">Placeholder</span></span>
+<span>(</span><span>initial_value: Callable[[tuple], torch.Tensor] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Can be assigned as an attribute to a <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> to represent a layer output of the previous time step. Needs to be
+linked to a <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> by either overwriting the attribute with a <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> or handing it directly to the <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> as an
+optional initialization parameter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>initial_value</code></strong></dt>
+<dd>Optional; function that returns the initial output value used for the first step /
+initial state. Per default, outputs are initialized to zero unless overwritten by the <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code>'s class.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Placeholder(LayerBase):
+    &#34;&#34;&#34;Can be assigned as an attribute to a `Network` to represent a layer output of the previous time step. Needs to be
+    linked to a `Layer` by either overwriting the attribute with a `Layer` or handing it directly to the `Layer` as an
+    optional initialization parameter.
+
+    Args:
+        initial_value: Optional; function that returns the initial output value used for the first step /
+            initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`&#39;s class.&#34;&#34;&#34;
+    _inputs = set()
+
+    def __init__(self, initial_value: Callable[[tuple], torch.Tensor] = None):
+        super().__init__()
+        self.initial_value = initial_value
+        self._layer = None
+
+    def _get_layer(self):
+        if self._layer is None:
+            raise Exception(&#39;Placeholder not assigned to layer.&#39;)
+        return self._layer</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></li>
+<li><a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.LayerBase.apply" href="base/index.html#rnnbuilder.base.LayerBase.apply">apply</a></code></li>
+<li><code><a title="rnnbuilder.base.LayerBase.stack" href="base/index.html#rnnbuilder.base.LayerBase.stack">stack</a></code></li>
+<li><code><a title="rnnbuilder.base.LayerBase.sum" href="base/index.html#rnnbuilder.base.LayerBase.sum">sum</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.Sequential"><code class="flex name class">
+<span>class <span class="ident">Sequential</span></span>
+<span>(</span><span>*module_factory: Union[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>, Iterable[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>]])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Equivalent to <code>torch.nn.Sequential</code>. Accepts multiple <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s.
+The corresponding modules are executed sequentially and associated state is managed automatically.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Sequential(ModuleFactory):
+    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+    The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
+
+    def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
+        super().__init__()
+        self.module_facs = module_factory if all([isinstance(m, ModuleFactory) for m in module_factory]) \
+            else list(module_factory[0])
+
+    def _shape_change(self, in_shape):
+        cur_shape = in_shape
+        for factory in self.module_facs:
+            cur_shape = factory._shape_change(cur_shape)
+        return cur_shape
+
+    def _assemble_module(self, in_shape, unrolled):
+        mlist = []
+        cur_shape = in_shape
+        for factory in self.module_facs:
+            new_module = factory._assemble_module(cur_shape, unrolled)
+            cur_shape = factory._shape_change(cur_shape)
+            mlist.append(new_module)
+        return SequentialModule(in_shape, mlist)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.ModuleFactory.make_model" href="base/index.html#rnnbuilder.base.ModuleFactory.make_model">make_model</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.Stack"><code class="flex name class">
+<span>class <span class="ident">Stack</span></span>
+<span>(</span><span>*layers: <a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stacks inputs along the first data dimension using <code>torch.cat</code>. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Stack(InputBase):
+    &#34;&#34;&#34;Stacks inputs along the first data dimension using `torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></li>
+<li><a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.InputBase.apply" href="base/index.html#rnnbuilder.base.InputBase.apply">apply</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.Sum"><code class="flex name class">
+<span>class <span class="ident">Sum</span></span>
+<span>(</span><span>*layers: <a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds up inputs element-wise. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Sum(InputBase):
+    &#34;&#34;&#34;adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    _mode = &#39;sum&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></li>
+<li><a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.InputBase.apply" href="base/index.html#rnnbuilder.base.InputBase.apply">apply</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#modules-and-factories">Modules and Factories</a></li>
+<li><a href="#network-class">Network class</a></li>
+<li><a href="#modules">Modules</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="rnnbuilder.base" href="base/index.html">rnnbuilder.base</a></code></li>
+<li><code><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code></li>
+<li><code><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.Sequential" href="#rnnbuilder.Sequential">Sequential</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.Stack" href="#rnnbuilder.Stack">Stack</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.Sum" href="#rnnbuilder.Sum">Sum</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
