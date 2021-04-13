@@ -5,7 +5,7 @@ import rnnbuilder as rb
 class ModuleFactory:
     """Factory base class. Factories are used to build networks recursively. Call `make_model` to get a PyTorch model.
     """
-    def make_model(self, in_shape):
+    def make_model(self, in_shape: tuple):
         """Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         """

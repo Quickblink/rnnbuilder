@@ -8,8 +8,8 @@ specification for a network or sub-network and can be invoked to yield independe
 Classic PyTorch code:
 ```
 input_shape = (10,)
-linear = torch.nn.Linear(in_features=10,out_features=10)
-model = torch.nn.Sequential(linear, linear)
+linear = torch.torch.nn.Linear(in_features=10,out_features=10)
+model = torch.torch.nn.Sequential(linear, linear)
 
 input = torch.rand(input_shape)
 output = model(input)
@@ -19,7 +19,7 @@ The above code applies a matrix multiplication with a *single weight matrix* twi
 rnnbuilder **(not equivalent)**:
 ```
 input_shape = (7,)
-linear = rnnbuilder.nn.Linear(out_features=10)
+linear = rnnbuilder.torch.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
@@ -50,19 +50,19 @@ corresponding factory classes.
 """
 #TODO: make nn module and test example
 #TODO: implement list input
-from torch import nn
 import torch
 from typing import Union, Callable, Iterable
 from .base._modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
 from .base import ModuleFactory, LayerInput, LayerBase, InputBase
 from .base._utils import shape_sum
 from . import custom
+from torch import nn
 
 
 
 
 class Sequential(ModuleFactory):
-    """Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+    """Equivalent to `torch.torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically."""
 
     def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
@@ -306,14 +306,14 @@ class Network(ModuleFactory):
         input_no_ph['input'] = set()
         input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         if not unrolled:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
-                module_dict_inner = nn.ModuleDict()
+                module_dict_inner = torch.nn.ModuleDict()
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
@@ -326,7 +326,7 @@ class Network(ModuleFactory):
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
                                       input_modes)
         else:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             for layer in self._og_order:
                 module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
             inputs = {layer: input_names[layer] for layer in self._og_order}

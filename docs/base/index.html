@@ -34,7 +34,7 @@ import rnnbuilder as rb
 class ModuleFactory:
     &#34;&#34;&#34;Factory base class. Factories are used to build networks recursively. Call `make_model` to get a PyTorch model.
     &#34;&#34;&#34;
-    def make_model(self, in_shape):
+    def make_model(self, in_shape: tuple):
         &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         &#34;&#34;&#34;
@@ -274,7 +274,7 @@ class InputBase(LayerInput):
 <pre><code class="python">class ModuleFactory:
     &#34;&#34;&#34;Factory base class. Factories are used to build networks recursively. Call `make_model` to get a PyTorch model.
     &#34;&#34;&#34;
-    def make_model(self, in_shape):
+    def make_model(self, in_shape: tuple):
         &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         &#34;&#34;&#34;
@@ -292,11 +292,13 @@ class InputBase(LayerInput):
 <li><a title="rnnbuilder.Sequential" href="../index.html#rnnbuilder.Sequential">Sequential</a></li>
 <li>rnnbuilder.custom._factories.NonRecurrentFactory</li>
 <li>rnnbuilder.custom._factories.RecurrentFactory</li>
+<li><a title="rnnbuilder.nn.Linear" href="../nn/index.html#rnnbuilder.nn.Linear">Linear</a></li>
+<li><a title="rnnbuilder.nn.ReLU" href="../nn/index.html#rnnbuilder.nn.ReLU">ReLU</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
 <dt id="rnnbuilder.base.ModuleFactory.make_model"><code class="name flex">
-<span>def <span class="ident">make_model</span></span>(<span>self, in_shape)</span>
+<span>def <span class="ident">make_model</span></span>(<span>self, in_shape: tuple)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
@@ -305,7 +307,7 @@ previous calls with its own parameters. This applies to sub-modules as well. Par
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def make_model(self, in_shape):
+<pre><code class="python">def make_model(self, in_shape: tuple):
     &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
     previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
     &#34;&#34;&#34;

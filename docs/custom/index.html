@@ -37,7 +37,7 @@ from abc import ABC, abstractmethod
 __pdoc__ = {&#39;CustomModule.training&#39; : False, &#39;CustomModule.dump_patches&#39; : False}
 
 
-class CustomModule(nn.Module, ABC):
+class CustomModule(torch.nn.Module, ABC):
     &#34;&#34;&#34;Abstract base class for custom recurrent modules. Inheriting classes must be registered with `register_recurrent`
     to retrieve a corresponding factory class. The factory class will initialize with the same parameters as the
     registered CustomModule.
@@ -104,15 +104,15 @@ class _NonRecurrentGenerator:
         return NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
 
 
-def register_non_recurrent(*, module_class: Type[nn.Module],
+def register_non_recurrent(*, module_class: Type[torch.nn.Module],
                                  flatten_input: bool,
                                  shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) torch.nn.Module to retrieve a factory class. The factory class will initialize with
+    &#34;&#34;&#34;Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
@@ -166,13 +166,13 @@ def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
 <span>def <span class="ident">register_non_recurrent</span></span>(<span>*, module_class: Type[torch.nn.modules.module.Module], flatten_input: bool, shape_change: bool)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Register a (non-recurrent) torch.nn.Module to retrieve a factory class. The factory class will initialize with
+<div class="desc"><p>Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
 the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
 <code><a title="rnnbuilder.custom.CustomModule" href="#rnnbuilder.custom.CustomModule">CustomModule</a></code> and use <code><a title="rnnbuilder.custom.register_recurrent" href="#rnnbuilder.custom.register_recurrent">register_recurrent()</a></code> instead.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>module_class</code></strong></dt>
-<dd>a class derived from torch.nn.Module. The forward method needs to conform to a fixed signature.
+<dd>a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
 It must accept a single input tensor of format (batch, data0, data1, &hellip;) and return a single output tensor.</dd>
 <dt><strong><code>flatten_input</code></strong></dt>
 <dd>If True, the input is flattened to shape (batch, data0<em>data1</em>&hellip;) before given to the module.</dd>
@@ -184,15 +184,15 @@ It must accept a single input tensor of format (batch, data0, data1, &hellip;) a
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_non_recurrent(*, module_class: Type[nn.Module],
+<pre><code class="python">def register_non_recurrent(*, module_class: Type[torch.nn.Module],
                                  flatten_input: bool,
                                  shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) torch.nn.Module to retrieve a factory class. The factory class will initialize with
+    &#34;&#34;&#34;Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
@@ -266,7 +266,7 @@ registered CustomModule.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class CustomModule(nn.Module, ABC):
+<pre><code class="python">class CustomModule(torch.nn.Module, ABC):
     &#34;&#34;&#34;Abstract base class for custom recurrent modules. Inheriting classes must be registered with `register_recurrent`
     to retrieve a corresponding factory class. The factory class will initialize with the same parameters as the
     registered CustomModule.

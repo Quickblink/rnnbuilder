@@ -28,8 +28,8 @@
 specification for a network or sub-network and can be invoked to yield independent models from that specification.</p>
 <p>Classic PyTorch code:</p>
 <pre><code>input_shape = (10,)
-linear = torch.nn.Linear(in_features=10,out_features=10)
-model = torch.nn.Sequential(linear, linear)
+linear = torch.torch.nn.Linear(in_features=10,out_features=10)
+model = torch.torch.nn.Sequential(linear, linear)
 
 input = torch.rand(input_shape)
 output = model(input)
@@ -37,7 +37,7 @@ output = model(input)
 <p>The above code applies a matrix multiplication with a <em>single weight matrix</em> twice to the input.</p>
 <p>rnnbuilder <strong>(not equivalent)</strong>:</p>
 <pre><code>input_shape = (7,)
-linear = rnnbuilder.nn.Linear(out_features=10)
+linear = rnnbuilder.torch.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
@@ -53,7 +53,7 @@ without the need to precalculate the size of inputs (more useful for convolution
 <p>The <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
 to gain an overview of what is possible.</p>
 <h2 id="modules">Modules</h2>
-<p>rnnbuilder provides a number of factories for standard torch modules under <code>rnnbuilder.nn</code>. These have identical
+<p>rnnbuilder provides a number of factories for standard torch modules under <code><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code>. These have identical
 signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
 and SNN modules are provided under the corresponding submodules.</p>
 <p>If you need to use any other modules, <code><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code> provides a base class and registration methods to retrieve
@@ -72,8 +72,8 @@ specification for a network or sub-network and can be invoked to yield independe
 Classic PyTorch code:
 ```
 input_shape = (10,)
-linear = torch.nn.Linear(in_features=10,out_features=10)
-model = torch.nn.Sequential(linear, linear)
+linear = torch.torch.nn.Linear(in_features=10,out_features=10)
+model = torch.torch.nn.Sequential(linear, linear)
 
 input = torch.rand(input_shape)
 output = model(input)
@@ -83,7 +83,7 @@ The above code applies a matrix multiplication with a *single weight matrix* twi
 rnnbuilder **(not equivalent)**:
 ```
 input_shape = (7,)
-linear = rnnbuilder.nn.Linear(out_features=10)
+linear = rnnbuilder.torch.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
@@ -114,19 +114,19 @@ corresponding factory classes.
 &#34;&#34;&#34;
 #TODO: make nn module and test example
 #TODO: implement list input
-from torch import nn
 import torch
 from typing import Union, Callable, Iterable
 from .base._modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
 from .base import ModuleFactory, LayerInput, LayerBase, InputBase
 from .base._utils import shape_sum
 from . import custom
+from torch import nn
 
 
 
 
 class Sequential(ModuleFactory):
-    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+    &#34;&#34;&#34;Equivalent to `torch.torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
 
     def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
@@ -370,14 +370,14 @@ class Network(ModuleFactory):
         input_no_ph[&#39;input&#39;] = set()
         input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         if not unrolled:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
-                module_dict_inner = nn.ModuleDict()
+                module_dict_inner = torch.nn.ModuleDict()
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
@@ -390,7 +390,7 @@ class Network(ModuleFactory):
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
                                       input_modes)
         else:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             for layer in self._og_order:
                 module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
             inputs = {layer: input_names[layer] for layer in self._og_order}
@@ -408,6 +408,11 @@ class Network(ModuleFactory):
 <dt><code class="name"><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code></dt>
 <dd>
 <div class="desc"><p>Functions to extend this library with custom modules</p></div>
+</dd>
+<dt><code class="name"><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code></dt>
+<dd>
+<div class="desc"><p>This module provides factories for standard torch modules. Documentation and signatures are directly copied from
+PyTorch and copyright applies …</p></div>
 </dd>
 <dt><code class="name"><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code></dt>
 <dd>
@@ -669,14 +674,14 @@ unrolls execution where necessary.</p></div>
         input_no_ph[&#39;input&#39;] = set()
         input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         if not unrolled:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
-                module_dict_inner = nn.ModuleDict()
+                module_dict_inner = torch.nn.ModuleDict()
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
@@ -689,7 +694,7 @@ unrolls execution where necessary.</p></div>
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
                                       input_modes)
         else:
-            module_dict = nn.ModuleDict()
+            module_dict = torch.nn.ModuleDict()
             for layer in self._og_order:
                 module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
             inputs = {layer: input_names[layer] for layer in self._og_order}
@@ -768,14 +773,14 @@ initial state. Per default, outputs are initialized to zero unless overwritten b
 <span>(</span><span>*module_factory: Union[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>, Iterable[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>]])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Equivalent to <code>torch.nn.Sequential</code>. Accepts multiple <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s.
+<div class="desc"><p>Equivalent to <code>torch.torch.nn.Sequential</code>. Accepts multiple <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s.
 The corresponding modules are executed sequentially and associated state is managed automatically.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Sequential(ModuleFactory):
-    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+    &#34;&#34;&#34;Equivalent to `torch.torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
 
     def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
@@ -884,6 +889,7 @@ The corresponding modules are executed sequentially and associated state is mana
 <ul>
 <li><code><a title="rnnbuilder.base" href="base/index.html">rnnbuilder.base</a></code></li>
 <li><code><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code></li>
+<li><code><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code></li>
 <li><code><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code></li>
 </ul>
 </li>
