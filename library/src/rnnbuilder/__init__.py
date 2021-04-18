@@ -50,13 +50,12 @@ corresponding factory classes.
 """
 #TODO: make nn module and test example
 #TODO: implement list input
-import torch
-from typing import Union, Callable, Iterable
-from .base._modules import InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
+import torch as _torch
+from typing import Union as _Union, Callable as _Callable, Iterable as _Iterable
+from .base._modules import InnerNetworkModule as _InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
 from .base import ModuleFactory, LayerInput, LayerBase, InputBase
-from .base._utils import shape_sum
+from .base._utils import shape_sum, any
 from . import custom
-from torch import nn
 
 
 
@@ -65,7 +64,7 @@ class Sequential(ModuleFactory):
     """Equivalent to `torch.torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically."""
 
-    def __init__(self, *module_factory: Union[ModuleFactory, Iterable[ModuleFactory]]):
+    def __init__(self, *module_factory: _Union[ModuleFactory, _Iterable[ModuleFactory]]):
         super().__init__()
         self.module_facs = module_factory if all([isinstance(m, ModuleFactory) for m in module_factory]) \
             else list(module_factory[0])
@@ -106,7 +105,7 @@ class Placeholder(LayerBase):
             initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`'s class."""
     _inputs = set()
 
-    def __init__(self, initial_value: Callable[[tuple], torch.Tensor] = None):
+    def __init__(self, initial_value: _Callable[[tuple], _torch.Tensor] = None):
         super().__init__()
         self.initial_value = initial_value
         self._layer = None
@@ -130,7 +129,7 @@ class Layer(LayerBase):
             required after layer definition (prohibiting overwriting the attribute as described above)
 
     """
-    def __init__(self, input: LayerInput, factory: Union[ModuleFactory, Iterable[ModuleFactory]],
+    def __init__(self, input: LayerInput, factory: _Union[ModuleFactory, _Iterable[ModuleFactory]],
                  placeholder: Placeholder = None):
         super().__init__()
         if isinstance(input, InputBase):
@@ -201,7 +200,35 @@ class Network(ModuleFactory):
             self._ph[key] = value
         self._reverse_laph[value] = key
 
-    def _compute_shapes(self, in_shape):
+    def _calc_input_shape(self, shapes, input_mode):
+        if input_mode == 'sum':
+            if not any(shapes):
+                return None
+            shape = any(shapes)
+            for other in shapes:
+                if other and other != shape:
+                    raise Exception('Shape mismatch in sum of inputs.')
+            return shape
+        elif input_mode == 'stack':
+            if not all(shapes):
+                return None
+            dims = max([len(x) for x in shapes])
+            reference = (1,)*(dims-len(shapes[0]))+(shapes[0])
+            first_dim = reference[0]
+            test = reference[1:]
+            for shape in shapes[1:]:
+                shape = (1,)*(dims-len(shape))+(shape)
+                if not shape[1:] == test:
+                    return shape_sum(shapes)
+                first_dim += shape[0]
+            return (first_dim,)+test
+        elif input_mode == 'list':
+            return shapes
+        else:
+            raise Exception('input mode not implemented, please report this')
+
+
+    def _compute_shapes(self, in_shape, input_modes):
         ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
         input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
                        self._layers.items()}
@@ -213,8 +240,7 @@ class Network(ModuleFactory):
             found_new = None
             for layer_name in layers:
                 inputs = input_no_ph[layer_name]
-                inp_shape = shapes[next(iter(inputs))] if len(inputs) == 1 else shape_sum \
-                    ([shapes[layer_name] for layer_name in inputs])
+                inp_shape = self._calc_input_shape([shapes[layer_name] for layer_name in inputs], input_modes[layer_name])
                 shapes[layer_name] = self._layers[layer_name].factory._shape_change(inp_shape)
                 if shapes[layer_name] is not None:
                     found_new = layer_name
@@ -225,7 +251,8 @@ class Network(ModuleFactory):
         return shapes, input_shapes
 
     def _shape_change(self, in_shape):
-        shapes, _ = self._compute_shapes(in_shape)
+        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
+        shapes, _ = self._compute_shapes(in_shape, input_modes)
         return shapes['output']
 
     def _compute_execution_order(self, input_no_ph, input_names, ph_rev):
@@ -297,23 +324,23 @@ class Network(ModuleFactory):
         for ph_name, ph in self._ph.items():
             if ph.initial_value:
                 initial_values[ph_name] = ph.initial_value
-        out_shapes, in_shapes = self._compute_shapes(in_shape)
+        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
+        out_shapes, in_shapes = self._compute_shapes(in_shape, input_modes)
         ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
         input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
                        self._layers.items()}
         input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
                        layer_name, inputs in input_names.items()}
         input_no_ph['input'] = set()
-        input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         if not unrolled:
-            module_dict = torch.nn.ModuleDict()
+            module_dict = _torch.nn.ModuleDict()
             ph_rev = {layer_name: ph_name for ph_name, layer_name in ph_lookup.items()}
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
                 recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
-                module_dict_inner = torch.nn.ModuleDict()
+                module_dict_inner = _torch.nn.ModuleDict()
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
@@ -326,9 +353,9 @@ class Network(ModuleFactory):
             return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
                                       input_modes)
         else:
-            module_dict = torch.nn.ModuleDict()
+            module_dict = _torch.nn.ModuleDict()
             for layer in self._og_order:
                 module_dict[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
             inputs = {layer: input_names[layer] for layer in self._og_order}
-            return InnerNetworkModule(in_shape, self._og_order, inputs, module_dict, ph_lookup, initial_values,
-                                      input_modes)
+            return _InnerNetworkModule(in_shape, self._og_order, inputs, module_dict, ph_lookup, initial_values,
+                                       input_modes)

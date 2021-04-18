@@ -19,6 +19,12 @@ def shape_sum(shapes):
         return None
     return (sum([flatten_to_int(shape) for shape in shapes]),)
 
+def any(iterable):
+    for x in iterable:
+        if x:
+            return x
+    return None
+
 
 
 class StateContainerNew:
