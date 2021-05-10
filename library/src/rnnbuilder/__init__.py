@@ -37,6 +37,34 @@ without the need to precalculate the size of inputs (more useful for convolution
 The `Network` class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
 to gain an overview of what is possible.
 
+###Example: LSTM
+![LSTM computational graph](img/rnnbuilder_graph_3.svg)
+The above computational graph shows a typical 1-layer LSTM identical in function to `torch.nn.LSTM`. The blue boxes show
+the `Layer`s of the `Network`, the green circles present the operations associated to these layers and the red boxes
+represent the values of the corresponding layers at the previous time step. They are represented in code by
+`Placeholder`s. Here is the whole network built using rnnbuilder:
+
+```
+hidden_size = 32
+n = rnnbuilder.Network()
+
+n.output = rnnbuilder.Placeholder()
+n.h_and_i = n.input.stack(n.output)
+
+n.i = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.f = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.o = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.g = n.h_and_i.apply(Linear(hidden_size), Tanh())
+
+n.c = rnnbuilder.Placeholder()
+n.c_1 = n.f.append(n.c).apply(Hadamard())
+n.c_2 = n.i.append(n.g).apply(Hadamard())
+
+n.c = n.c_1.sum(n.c_2)
+n.tan_c = n.c.apply(Tanh())
+n.output = n.o.append(n.tan_c).apply(Hadamard())
+```
+
 ##Modules
 rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
 signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
@@ -91,8 +119,12 @@ class Stack(InputBase):
 
 
 class Sum(InputBase):
-    """adds up inputs element-wise. Is used as an input to `Layer` in `Network`"""
+    """Adds up inputs element-wise. Is used as an input to `Layer` in `Network`"""
     _mode = 'sum'
+
+class List(InputBase):
+    """Provides multiple inputs to the next `Layer` in `Network` as a list. Only works with specific factories."""
+    _mode = 'list'
 
 
 class Placeholder(LayerBase):
@@ -246,8 +278,8 @@ class Network(ModuleFactory):
                     found_new = layer_name
                     break
             layers.remove(found_new)
-        input_shapes = {layer_name: shapes[next(iter(input_no_ph[layer_name]))] if len(input_no_ph[layer_name]) == 1
-        else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
+        input_shapes = {layer_name: self._calc_input_shape([shapes[input_name] for input_name
+                        in input_no_ph[layer_name]], input_modes[layer_name]) for layer_name in self._layers}
         return shapes, input_shapes
 
     def _shape_change(self, in_shape):
@@ -338,7 +370,7 @@ class Network(ModuleFactory):
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
-                recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                recurent = {ph_rev[layer_name]: layer_name for layer_name in set(cycle).intersection(ph_rev)}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
                 module_dict_inner = _torch.nn.ModuleDict()
                 for layer in cycle:

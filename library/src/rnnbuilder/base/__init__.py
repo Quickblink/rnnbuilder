@@ -43,6 +43,12 @@ class LayerBase(LayerInput):
             raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
         return rb.Stack(self, *layers)
 
+    def append(self, *layers: 'LayerBase') -> 'rb.List':
+        """returns a `rnnbuilder.List`"""
+        if not self._registered:
+            raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
+        return rb.List(self, *layers)
+
     def apply(self, *module_facs, placeholder=None):
         """A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer."""
         if not self._registered:

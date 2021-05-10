@@ -28,21 +28,22 @@ class RecurrentWrapper(ModuleBase):
         self._full_state = False
 
     def forward(self, x, h):
-        time = x.shape[0]
-        batch = x.shape[1]
+        x_con = StateContainerNew(x)
+        time, batch = x_con.get_shape()[:2]
         if self.single_step or (self._full_state and self.full_state_unroll):
             output = torch.empty((time, batch)+self.out_shape, device=self.device)
             if self._full_state:
                 state = StateContainerNew(h, (time, batch), self.device)
             for t in range(time):
-                out, h = self.inner((x[t].reshape((batch,)+self.in_shape) if self.single_step else x[t].reshape((1, batch)+self.in_shape)), h)
+                fn = lambda x, shape : x[t].reshape((batch,)+shape) if self.single_step else x[t].reshape((1, batch)+shape)
+                out, h = self.inner(x_con.get(fn, self.in_shape), h)
                 output[t] = out if self.single_step else out[0]
                 if self._full_state:
                     for container, entry in state.transfer(h):
                         container[t] = entry.rename(None)
             new_state = state.state if self._full_state else h
         else:
-            x = x.reshape((time, batch) + self.in_shape)
+            x = x_con.get(lambda x, shape: x.reshape((time, batch) + shape), self.in_shape)
             output, new_state = self.inner(x, h)
         return output, new_state
 

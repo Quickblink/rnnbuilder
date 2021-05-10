@@ -120,7 +120,12 @@ class OuterNetworkModule(ModuleBase):
             else:
                 if len(self.inputs[layer_name]) > 1:
                     inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                    x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
+                    if self.input_modes[layer_name] == 'stack':
+                        x = torch.cat(inputs, dim=-1)
+                    elif self.input_modes[layer_name] == 'sum':
+                        x = sum(inputs)
+                    else:
+                        x = inputs
                 else:
                     x = results[next(iter(self.inputs[layer_name]))]
                 results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
@@ -157,9 +162,14 @@ class InnerNetworkModule(ModuleBase):
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
+                if self.input_modes[layer_name] == 'stack':
+                    x = torch.cat(inputs, dim=-1)
+                elif self.input_modes[layer_name] == 'sum':
+                    x = sum(inputs)
+                else:
+                    x = inputs
             else:
-                x = results[self.inputs[layer_name][0]]
+                x = results[next(iter(self.inputs[layer_name]))]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results['output'], (new_state, new_recurrent_outputs)
@@ -183,9 +193,14 @@ class NestedNetworkModule(InnerNetworkModule):
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
-                x = torch.cat(inputs, dim=-1) if self.input_modes[layer_name] == 'stack' else sum(inputs)
+                if self.input_modes[layer_name] == 'stack':
+                    x = torch.cat(inputs, dim=-1)
+                elif self.input_modes[layer_name] == 'sum':
+                    x = sum(inputs)
+                else:
+                    x = inputs
             else:
-                x = results[self.inputs[layer_name][0]]
+                x = results[next(iter(self.inputs[layer_name]))]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results, (new_state, new_recurrent_outputs)

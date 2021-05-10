@@ -72,6 +72,12 @@ class LayerBase(LayerInput):
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
         return rb.Stack(self, *layers)
 
+    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+        &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
+        if not self._registered:
+            raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
+        return rb.List(self, *layers)
+
     def apply(self, *module_facs, placeholder=None):
         &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
         if not self._registered:
@@ -125,6 +131,7 @@ class InputBase(LayerInput):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="rnnbuilder.List" href="../index.html#rnnbuilder.List">List</a></li>
 <li><a title="rnnbuilder.Stack" href="../index.html#rnnbuilder.Stack">Stack</a></li>
 <li><a title="rnnbuilder.Sum" href="../index.html#rnnbuilder.Sum">Sum</a></li>
 </ul>
@@ -174,6 +181,12 @@ class InputBase(LayerInput):
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
         return rb.Stack(self, *layers)
 
+    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+        &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
+        if not self._registered:
+            raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
+        return rb.List(self, *layers)
+
     def apply(self, *module_facs, placeholder=None):
         &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
         if not self._registered:
@@ -191,6 +204,22 @@ class InputBase(LayerInput):
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="rnnbuilder.base.LayerBase.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, *layers: <a title="rnnbuilder.base.LayerBase" href="#rnnbuilder.base.LayerBase">LayerBase</a>) ‑> <a title="rnnbuilder.List" href="../index.html#rnnbuilder.List">List</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>returns a <code><a title="rnnbuilder.List" href="../index.html#rnnbuilder.List">List</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+    &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
+    if not self._registered:
+        raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
+    return rb.List(self, *layers)</code></pre>
+</details>
+</dd>
 <dt id="rnnbuilder.base.LayerBase.apply"><code class="name flex">
 <span>def <span class="ident">apply</span></span>(<span>self, *module_facs, placeholder=None)</span>
 </code></dt>
@@ -294,6 +323,8 @@ class InputBase(LayerInput):
 <li>rnnbuilder.custom._factories.RecurrentFactory</li>
 <li><a title="rnnbuilder.nn.Linear" href="../nn/index.html#rnnbuilder.nn.Linear">Linear</a></li>
 <li><a title="rnnbuilder.nn.ReLU" href="../nn/index.html#rnnbuilder.nn.ReLU">ReLU</a></li>
+<li><a title="rnnbuilder.nn.Sigmoid" href="../nn/index.html#rnnbuilder.nn.Sigmoid">Sigmoid</a></li>
+<li><a title="rnnbuilder.nn.Tanh" href="../nn/index.html#rnnbuilder.nn.Tanh">Tanh</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -341,6 +372,7 @@ previous calls with its own parameters. This applies to sub-modules as well. Par
 <li>
 <h4><code><a title="rnnbuilder.base.LayerBase" href="#rnnbuilder.base.LayerBase">LayerBase</a></code></h4>
 <ul class="">
+<li><code><a title="rnnbuilder.base.LayerBase.append" href="#rnnbuilder.base.LayerBase.append">append</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.apply" href="#rnnbuilder.base.LayerBase.apply">apply</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.stack" href="#rnnbuilder.base.LayerBase.stack">stack</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.sum" href="#rnnbuilder.base.LayerBase.sum">sum</a></code></li>

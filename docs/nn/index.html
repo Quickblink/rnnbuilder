@@ -269,7 +269,56 @@ class ReLU(ModuleFactory):
         self.inplace = inplace
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, torch.nn.ReLU(inplace=self.inplace))</code></pre>
+        return StatelessWrapper(in_shape, in_shape, torch.nn.ReLU(inplace=self.inplace))
+
+
+class Sigmoid(ModuleFactory):
+    r&#34;&#34;&#34;Applies the element-wise function:
+
+    .. math::
+        \text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + \exp(-x)}
+
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Sigmoid.png
+
+    Examples::
+
+        &gt;&gt;&gt; m = nn.Sigmoid()
+        &gt;&gt;&gt; input = torch.randn(2)
+        &gt;&gt;&gt; output = m(input)
+    &#34;&#34;&#34;
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Sigmoid())
+
+
+class Tanh(ModuleFactory):
+    r&#34;&#34;&#34;Applies the element-wise function:
+
+    .. math::
+        \text{Tanh}(x) = \tanh(x) = \frac{\exp(x) - \exp(-x)} {\exp(x) + \exp(-x)}
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Tanh.png
+
+    Examples::
+
+        &gt;&gt;&gt; m = nn.Tanh()
+        &gt;&gt;&gt; input = torch.randn(2)
+        &gt;&gt;&gt; output = m(input)
+    &#34;&#34;&#34;
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Tanh())</code></pre>
 </details>
 </section>
 <section>
@@ -774,6 +823,123 @@ dimensions</li>
 </li>
 </ul>
 </dd>
+<dt id="rnnbuilder.nn.Sigmoid"><code class="flex name class">
+<span>class <span class="ident">Sigmoid</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies the element-wise function:</p>
+<p>[ \text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + \exp(-x)} ]</p>
+<h2 id="shape">Shape</h2>
+<ul>
+<li>Input: :math:<code>(N, *)</code> where <code>*</code> means, any number of additional
+dimensions</li>
+<li>Output: :math:<code>(N, *)</code>, same shape as the input</li>
+</ul>
+<p><img alt="" src="../scripts/activation_images/Sigmoid.png"></p>
+<p>Examples::</p>
+<pre><code>&gt;&gt;&gt; m = nn.Sigmoid()
+&gt;&gt;&gt; input = torch.randn(2)
+&gt;&gt;&gt; output = m(input)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Sigmoid(ModuleFactory):
+    r&#34;&#34;&#34;Applies the element-wise function:
+
+    .. math::
+        \text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + \exp(-x)}
+
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Sigmoid.png
+
+    Examples::
+
+        &gt;&gt;&gt; m = nn.Sigmoid()
+        &gt;&gt;&gt; input = torch.randn(2)
+        &gt;&gt;&gt; output = m(input)
+    &#34;&#34;&#34;
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Sigmoid())</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.ModuleFactory.make_model" href="../base/index.html#rnnbuilder.base.ModuleFactory.make_model">make_model</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.nn.Tanh"><code class="flex name class">
+<span>class <span class="ident">Tanh</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Applies the element-wise function:</p>
+<p>[ \text{Tanh}(x) = \tanh(x) = \frac{\exp(x) - \exp(-x)} {\exp(x) + \exp(-x)} ]</p>
+<h2 id="shape">Shape</h2>
+<ul>
+<li>Input: :math:<code>(N, *)</code> where <code>*</code> means, any number of additional
+dimensions</li>
+<li>Output: :math:<code>(N, *)</code>, same shape as the input</li>
+</ul>
+<p><img alt="" src="../scripts/activation_images/Tanh.png"></p>
+<p>Examples::</p>
+<pre><code>&gt;&gt;&gt; m = nn.Tanh()
+&gt;&gt;&gt; input = torch.randn(2)
+&gt;&gt;&gt; output = m(input)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Tanh(ModuleFactory):
+    r&#34;&#34;&#34;Applies the element-wise function:
+
+    .. math::
+        \text{Tanh}(x) = \tanh(x) = \frac{\exp(x) - \exp(-x)} {\exp(x) + \exp(-x)}
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Tanh.png
+
+    Examples::
+
+        &gt;&gt;&gt; m = nn.Tanh()
+        &gt;&gt;&gt; input = torch.randn(2)
+        &gt;&gt;&gt; output = m(input)
+    &#34;&#34;&#34;
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Tanh())</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.ModuleFactory.make_model" href="../base/index.html#rnnbuilder.base.ModuleFactory.make_model">make_model</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -798,6 +964,12 @@ dimensions</li>
 </li>
 <li>
 <h4><code><a title="rnnbuilder.nn.ReLU" href="#rnnbuilder.nn.ReLU">ReLU</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.nn.Sigmoid" href="#rnnbuilder.nn.Sigmoid">Sigmoid</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.nn.Tanh" href="#rnnbuilder.nn.Tanh">Tanh</a></code></h4>
 </li>
 </ul>
 </li>

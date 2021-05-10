@@ -60,16 +60,36 @@ class StateContainerNew:
             raise Exception('Unknown type in model state!')
 
 
-    def get(self, fn):
-        return self._get(self.state, fn)
+    def get(self, fn, *others):
+        return self._get(self.state, fn, *others)
 
-    def _get(self, state, fn):
+    def _get(self, state, fn, *others):
         if isinstance(state, dict):
-            new_log = {k: self._get(v, fn) for k, v in state.items()}
+            new_log = {k: self._get(v, fn, *[d[k] for d in others]) for k, v in state.items()}
         elif isinstance(state, (list, tuple)):
-            new_log = [self._get(v, fn) for v in state]
+            new_log = [self._get(v, fn, *[d[i] for d in others]) for i, v in enumerate(state)]
         elif isinstance(state, torch.Tensor):
-            new_log = fn(state)
+            new_log = fn(state, *others)
         else:
             raise Exception('Unknown type in model state!')
         return new_log
+
+    def get_shape(self):
+        return self._get_shape(self.state)
+
+    def _get_shape(self, state):
+        if isinstance(state, dict):
+            for v in state.values():
+                info = self._get_shape(v)
+                if info:
+                    return info
+        elif isinstance(state, (list, tuple)):
+            for v in state:
+                info = self._get_shape(v)
+                if info:
+                    return info
+        elif isinstance(state, torch.Tensor):
+            return state.shape
+        else:
+            raise Exception('Unknown type in model state!')
+        return None

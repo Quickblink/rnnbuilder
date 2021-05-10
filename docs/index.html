@@ -52,6 +52,31 @@ without the need to precalculate the size of inputs (more useful for convolution
 <h2 id="network-class">Network class</h2>
 <p>The <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
 to gain an overview of what is possible.</p>
+<h3 id="example-lstm">Example: LSTM</h3>
+<p><img alt="LSTM computational graph" src="img/rnnbuilder_graph_3.svg">
+The above computational graph shows a typical 1-layer LSTM identical in function to <code>torch.nn.LSTM</code>. The blue boxes show
+the <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code>s of the <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code>, the green circles present the operations associated to these layers and the red boxes
+represent the values of the corresponding layers at the previous time step. They are represented in code by
+<code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code>s. Here is the whole network built using rnnbuilder:</p>
+<pre><code>hidden_size = 32
+n = rnnbuilder.Network()
+
+n.output = rnnbuilder.Placeholder()
+n.h_and_i = n.input.stack(n.output)
+
+n.i = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.f = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.o = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.g = n.h_and_i.apply(Linear(hidden_size), Tanh())
+
+n.c = rnnbuilder.Placeholder()
+n.c_1 = n.f.append(n.c).apply(Hadamard())
+n.c_2 = n.i.append(n.g).apply(Hadamard())
+
+n.c = n.c_1.sum(n.c_2)
+n.tan_c = n.c.apply(Tanh())
+n.output = n.o.append(n.tan_c).apply(Hadamard())
+</code></pre>
 <h2 id="modules">Modules</h2>
 <p>rnnbuilder provides a number of factories for standard torch modules under <code><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code>. These have identical
 signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
@@ -100,6 +125,34 @@ without the need to precalculate the size of inputs (more useful for convolution
 ##Network class
 The `Network` class is the main tool to build powerful (and recurrent) architectures. Take a look at the documentation
 to gain an overview of what is possible.
+
+###Example: LSTM
+![LSTM computational graph](img/rnnbuilder_graph_3.svg)
+The above computational graph shows a typical 1-layer LSTM identical in function to `torch.nn.LSTM`. The blue boxes show
+the `Layer`s of the `Network`, the green circles present the operations associated to these layers and the red boxes
+represent the values of the corresponding layers at the previous time step. They are represented in code by
+`Placeholder`s. Here is the whole network built using rnnbuilder:
+
+```
+hidden_size = 32
+n = rnnbuilder.Network()
+
+n.output = rnnbuilder.Placeholder()
+n.h_and_i = n.input.stack(n.output)
+
+n.i = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.f = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.o = n.h_and_i.apply(Linear(hidden_size), Sigmoid())
+n.g = n.h_and_i.apply(Linear(hidden_size), Tanh())
+
+n.c = rnnbuilder.Placeholder()
+n.c_1 = n.f.append(n.c).apply(Hadamard())
+n.c_2 = n.i.append(n.g).apply(Hadamard())
+
+n.c = n.c_1.sum(n.c_2)
+n.tan_c = n.c.apply(Tanh())
+n.output = n.o.append(n.tan_c).apply(Hadamard())
+```
 
 ##Modules
 rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
@@ -155,8 +208,12 @@ class Stack(InputBase):
 
 
 class Sum(InputBase):
-    &#34;&#34;&#34;adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    &#34;&#34;&#34;Adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
     _mode = &#39;sum&#39;
+
+class List(InputBase):
+    &#34;&#34;&#34;Provides multiple inputs to the next `Layer` in `Network` as a list. Only works with specific factories.&#34;&#34;&#34;
+    _mode = &#39;list&#39;
 
 
 class Placeholder(LayerBase):
@@ -310,8 +367,8 @@ class Network(ModuleFactory):
                     found_new = layer_name
                     break
             layers.remove(found_new)
-        input_shapes = {layer_name: shapes[next(iter(input_no_ph[layer_name]))] if len(input_no_ph[layer_name]) == 1
-        else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
+        input_shapes = {layer_name: self._calc_input_shape([shapes[input_name] for input_name
+                        in input_no_ph[layer_name]], input_modes[layer_name]) for layer_name in self._layers}
         return shapes, input_shapes
 
     def _shape_change(self, in_shape):
@@ -402,7 +459,7 @@ class Network(ModuleFactory):
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
-                recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                recurent = {ph_rev[layer_name]: layer_name for layer_name in set(cycle).intersection(ph_rev)}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
                 module_dict_inner = _torch.nn.ModuleDict()
                 for layer in cycle:
@@ -516,9 +573,38 @@ required after layer definition (prohibiting overwriting the attribute as descri
 <ul class="hlist">
 <li><code><b><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></b></code>:
 <ul class="hlist">
+<li><code><a title="rnnbuilder.base.LayerBase.append" href="base/index.html#rnnbuilder.base.LayerBase.append">append</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.apply" href="base/index.html#rnnbuilder.base.LayerBase.apply">apply</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.stack" href="base/index.html#rnnbuilder.base.LayerBase.stack">stack</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.sum" href="base/index.html#rnnbuilder.base.LayerBase.sum">sum</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="rnnbuilder.List"><code class="flex name class">
+<span>class <span class="ident">List</span></span>
+<span>(</span><span>*layers: <a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provides multiple inputs to the next <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code> as a list. Only works with specific factories.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class List(InputBase):
+    &#34;&#34;&#34;Provides multiple inputs to the next `Layer` in `Network` as a list. Only works with specific factories.&#34;&#34;&#34;
+    _mode = &#39;list&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></li>
+<li><a title="rnnbuilder.base.LayerInput" href="base/index.html#rnnbuilder.base.LayerInput">LayerInput</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="rnnbuilder.base.InputBase" href="base/index.html#rnnbuilder.base.InputBase">InputBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="rnnbuilder.base.InputBase.apply" href="base/index.html#rnnbuilder.base.InputBase.apply">apply</a></code></li>
 </ul>
 </li>
 </ul>
@@ -642,8 +728,8 @@ unrolls execution where necessary.</p></div>
                     found_new = layer_name
                     break
             layers.remove(found_new)
-        input_shapes = {layer_name: shapes[next(iter(input_no_ph[layer_name]))] if len(input_no_ph[layer_name]) == 1
-        else shape_sum([shapes[layer_name] for layer_name in input_no_ph[layer_name]]) for layer_name in self._layers}
+        input_shapes = {layer_name: self._calc_input_shape([shapes[input_name] for input_name
+                        in input_no_ph[layer_name]], input_modes[layer_name]) for layer_name in self._layers}
         return shapes, input_shapes
 
     def _shape_change(self, in_shape):
@@ -734,7 +820,7 @@ unrolls execution where necessary.</p></div>
             outer_order, outer_layers, cycles_layers, new_inputs, cycles_outputs = self._compute_execution_order \
                 (input_no_ph, input_names, ph_rev)
             for name, cycle in cycles_layers.items():
-                recurent = {ph_rev[layer_name]: layer_name for layer_name in cycle}
+                recurent = {ph_rev[layer_name]: layer_name for layer_name in set(cycle).intersection(ph_rev)}
                 init_values = {name: initial_values[name] for name in set(recurent).intersection(initial_values)}
                 module_dict_inner = _torch.nn.ModuleDict()
                 for layer in cycle:
@@ -816,6 +902,7 @@ initial state. Per default, outputs are initialized to zero unless overwritten b
 <ul class="hlist">
 <li><code><b><a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a></b></code>:
 <ul class="hlist">
+<li><code><a title="rnnbuilder.base.LayerBase.append" href="base/index.html#rnnbuilder.base.LayerBase.append">append</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.apply" href="base/index.html#rnnbuilder.base.LayerBase.apply">apply</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.stack" href="base/index.html#rnnbuilder.base.LayerBase.stack">stack</a></code></li>
 <li><code><a title="rnnbuilder.base.LayerBase.sum" href="base/index.html#rnnbuilder.base.LayerBase.sum">sum</a></code></li>
@@ -904,13 +991,13 @@ The corresponding modules are executed sequentially and associated state is mana
 <span>(</span><span>*layers: <a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>adds up inputs element-wise. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
+<div class="desc"><p>Adds up inputs element-wise. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Sum(InputBase):
-    &#34;&#34;&#34;adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    &#34;&#34;&#34;Adds up inputs element-wise. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
     _mode = &#39;sum&#39;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -935,7 +1022,10 @@ The corresponding modules are executed sequentially and associated state is mana
 <div class="toc">
 <ul>
 <li><a href="#modules-and-factories">Modules and Factories</a></li>
-<li><a href="#network-class">Network class</a></li>
+<li><a href="#network-class">Network class</a><ul>
+<li><a href="#example-lstm">Example: LSTM</a></li>
+</ul>
+</li>
 <li><a href="#modules">Modules</a></li>
 </ul>
 </div>
@@ -952,6 +1042,9 @@ The corresponding modules are executed sequentially and associated state is mana
 <ul>
 <li>
 <h4><code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code></h4>
+</li>
+<li>
+<h4><code><a title="rnnbuilder.List" href="#rnnbuilder.List">List</a></code></h4>
 </li>
 <li>
 <h4><code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></h4>

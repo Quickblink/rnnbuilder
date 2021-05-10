@@ -59,10 +59,10 @@ class RecurrentFactory(ModuleFactory):
         if not self._buffered_module or in_shape != self._buffered_shape:
             self._buffered_module = self._module_class(*self._args, **self._kwargs)
             self._buffered_shape = in_shape
-            if in_shape:
+            if all(in_shape):
                 self._buffered_module.enter_in_shape(in_shape)
         out_shape = self._buffered_module.get_out_shape(in_shape)
-        if in_shape and not out_shape:
+        if all(in_shape) and not out_shape:
             return self._buffered_module(torch.zeros(self._test_shape + in_shape),
                                          self._buffered_module.get_initial_state(1))[0].shape[2 - self._single_step:]
         return out_shape

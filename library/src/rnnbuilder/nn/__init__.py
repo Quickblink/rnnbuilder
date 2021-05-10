@@ -239,3 +239,52 @@ class ReLU(ModuleFactory):
 
     def _assemble_module(self, in_shape, unrolled):
         return StatelessWrapper(in_shape, in_shape, torch.nn.ReLU(inplace=self.inplace))
+
+
+class Sigmoid(ModuleFactory):
+    r"""Applies the element-wise function:
+
+    .. math::
+        \text{Sigmoid}(x) = \sigma(x) = \frac{1}{1 + \exp(-x)}
+
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Sigmoid.png
+
+    Examples::
+
+        >>> m = nn.Sigmoid()
+        >>> input = torch.randn(2)
+        >>> output = m(input)
+    """
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Sigmoid())
+
+
+class Tanh(ModuleFactory):
+    r"""Applies the element-wise function:
+
+    .. math::
+        \text{Tanh}(x) = \tanh(x) = \frac{\exp(x) - \exp(-x)} {\exp(x) + \exp(-x)}
+
+    Shape:
+        - Input: :math:`(N, *)` where `*` means, any number of additional
+          dimensions
+        - Output: :math:`(N, *)`, same shape as the input
+
+    .. image:: ../scripts/activation_images/Tanh.png
+
+    Examples::
+
+        >>> m = nn.Tanh()
+        >>> input = torch.randn(2)
+        >>> output = m(input)
+    """
+
+    def _assemble_module(self, in_shape, unrolled):
+        return StatelessWrapper(in_shape, in_shape, torch.nn.Tanh())
