@@ -10,7 +10,6 @@ FRAME_STACK = 4
 N_OUT = 3
 
 conv_neuron = snn.Discontinuous()
-snn.LIF()
 
 conv_stack = rb.Sequential(
     rnn.TempConvPlus2d(out_channels=32, kernel_size=8, stride=4, time_kernel_size=FRAME_STACK),conv_neuron,

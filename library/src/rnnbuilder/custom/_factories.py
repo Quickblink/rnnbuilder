@@ -1,10 +1,10 @@
 import torch
 
-from .. import ModuleFactory
-from ..base._utils import flatten_shape
-from ._modules import StatelessWrapper, RecurrentWrapper
+from ..base import ModuleFactory
+from ..base._utils import _flatten_shape
+from ._modules import _StatelessWrapper, RecurrentWrapper
 
-class NonRecurrentFactory(ModuleFactory):
+class _NonRecurrentFactory(ModuleFactory):
     def __init__(self, make_module, prepare_input, shape_change_method, *args, **kwargs):
         super().__init__()
         self._make_module = make_module
@@ -30,13 +30,13 @@ class NonRecurrentFactory(ModuleFactory):
 
 
     def _assemble_module(self, in_shape, unrolled):
-        in_shape = flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
+        in_shape = _flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
         out_shape = self._shape_change(in_shape)
         module = self._buffered_module or self._make_module(in_shape, *self._args, **self._kwargs)
         self._buffered_module = None
-        return StatelessWrapper(in_shape, out_shape, module)
+        return _StatelessWrapper(in_shape, out_shape, module)
 
-class RecurrentFactory(ModuleFactory):
+class _RecurrentFactory(ModuleFactory):
     def __init__(self, module_class, prepare_input, single_step, unroll_full_state, *args, **kwargs):
         super().__init__()
         self._module_class = module_class
@@ -70,7 +70,7 @@ class RecurrentFactory(ModuleFactory):
 
 
     def _assemble_module(self, in_shape, unrolled):
-        in_shape = flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
+        in_shape = _flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
         out_shape = self._shape_change(in_shape)
         module = self._buffered_module or self._make_module(in_shape, *self._args, **self._kwargs)
         self._buffered_module = None

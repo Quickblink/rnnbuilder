@@ -3,7 +3,7 @@ from torch import nn
 
 from ._utils import StateContainerNew
 
-class ModuleBase(torch.nn.Module):
+class _ModuleBase(torch.nn.Module):
     def __init__(self, in_shape):
         super().__init__()
         self.out_shape = in_shape
@@ -22,7 +22,7 @@ class ModuleBase(torch.nn.Module):
 
 
 
-class OuterModule(torch.nn.Module):
+class _OuterModule(torch.nn.Module):
     def __init__(self, inner):
         super().__init__()
         self.inner = inner
@@ -56,7 +56,7 @@ class OuterModule(torch.nn.Module):
 
 
 
-class SequentialModule(ModuleBase):
+class _SequentialModule(_ModuleBase):
     def __init__(self, in_shape, modules):
         super().__init__(in_shape)
         self.mlist = torch.nn.ModuleList(modules)
@@ -75,7 +75,7 @@ class SequentialModule(ModuleBase):
     def get_initial_output(self, batch_size):
         return self.mlist[-1].get_initial_output(batch_size)
 
-class OuterNetworkModule(ModuleBase):
+class _OuterNetworkModule(_ModuleBase):
     def __init__(self, in_shape, order, inputs, layers: torch.nn.ModuleDict, cycle_outputs, placeholders_rev, input_modes):
         super().__init__(in_shape)
         self.order = order
@@ -144,7 +144,7 @@ class OuterNetworkModule(ModuleBase):
     def get_initial_output(self, batch_size):
         return self.layers['output'].get_initial_output(batch_size)
 
-class InnerNetworkModule(ModuleBase):
+class _InnerNetworkModule(_ModuleBase):
     def __init__(self, in_shape, order, inputs, layers: torch.nn.ModuleDict, recurrent_layers, intial_values, input_modes):
         super().__init__(in_shape)
         self.order = order
@@ -185,7 +185,7 @@ class InnerNetworkModule(ModuleBase):
     def get_initial_output(self, batch_size):
         return self.layers['output'].get_initial_output(batch_size)
 
-class NestedNetworkModule(InnerNetworkModule):
+class _NestedNetworkModule(_InnerNetworkModule):
     def forward(self, results, hidden_state):
         state, recurrent_outputs = hidden_state
         new_state = {}

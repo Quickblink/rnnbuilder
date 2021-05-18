@@ -1,14 +1,13 @@
 """Functions to extend this library with custom modules"""
-from typing import Union, Callable, Literal, Optional, Type
-from torch import nn
-import torch
-from ._factories import NonRecurrentFactory, RecurrentFactory
-from abc import ABC, abstractmethod
+from typing import Type
+import torch as _torch
+from ._factories import _NonRecurrentFactory, _RecurrentFactory
+from abc import ABC as _ABC, abstractmethod as _abstractmethod
 
 __pdoc__ = {'CustomModule.training' : False, 'CustomModule.dump_patches' : False}
 
 
-class CustomModule(torch.nn.Module, ABC):
+class CustomModule(_torch.nn.Module, _ABC):
     """Abstract base class for custom recurrent modules. Inheriting classes must be registered with `register_recurrent`
     to retrieve a corresponding factory class. The factory class will initialize with the same parameters as the
     registered CustomModule.
@@ -20,7 +19,7 @@ class CustomModule(torch.nn.Module, ABC):
         """
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def get_out_shape(self, in_shape):
         """
         Args:
@@ -42,9 +41,9 @@ class CustomModule(torch.nn.Module, ABC):
             full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
                 always be 1.
         """
-        return torch.zeros(full_shape, device=self.device)
+        return _torch.zeros(full_shape, device=self.device)
 
-    @abstractmethod
+    @_abstractmethod
     def forward(self, input, state):
         """Must be implemented with the following signature.
         Args:
@@ -72,25 +71,25 @@ class _NonRecurrentGenerator:
         self._prepare_input = prepare_input
 
     def __call__(self, *args, **kwargs):
-        return NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
+        return _NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
 
 
-def register_non_recurrent(*, module_class: Type[torch.nn.Module],
-                                 flatten_input: bool,
-                                 shape_change: bool):
-    """Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
+def register_non_recurrent(*, module_class: Type[_torch.nn.Module],
+                           flatten_input: bool,
+                           shape_change: bool):
+    """Register a (non-recurrent) `torch.nn.Module` to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from `torch.nn.Module`. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
             (after the optional flatten) and output shapes of the module are identical otherwise True
     """
     initializer = (lambda in_shape, *args, **kwargs: module_class(*args, **kwargs))\
-        if type(module_class) is type else module_class #TODO: remove initializer
+        if type(module_class) is type else module_class
     return _NonRecurrentGenerator(initializer, 'flatten' if flatten_input else 'keep',
                                   'auto' if shape_change else 'none')
 
@@ -103,8 +102,8 @@ class _RecurrentGenerator:
         self._unroll_full_state = unroll_full_state
 
     def __call__(self, *args, **kwargs):
-        return RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
-                                *args, **kwargs)
+        return _RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
+                                 *args, **kwargs)
 
 def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
                        single_step: bool, unroll_full_state: bool = True):

@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 
-class LSTMModule(CustomModule):
+class _LSTMModule(CustomModule):
     def __init__(self, hidden_size: int,
                  num_layers: int = 1, bias: bool = True,
                  dropout: float = 0.) -> None:
@@ -31,7 +31,7 @@ class LSTMModule(CustomModule):
         return x, h
 
 
-class TempConvPlus2dModule(CustomModule):
+class _TempConvPlus2dModule(CustomModule):
     def __init__(self, **kwargs):
         super().__init__()
         self.kwargs = kwargs

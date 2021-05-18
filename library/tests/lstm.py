@@ -72,11 +72,11 @@ out_ref, state2 = ref_model(example)
 #c2 = state2[1]
 
 
-#if not torch.isclose(out, out_ref, atol=1e-7).all():
+#if not _torch.isclose(out, out_ref, atol=1e-7).all():
 #    x = 1
-#ih = torch.ones(104)
+#ih = _torch.ones(104)
 #ih[100:] = 0
-#test = torch.sigmoid(model.inner.layers.c0.layers.i.mlist[0].inner(ih))
+#test = _torch.sigmoid(model.inner.layers.c0.layers.i.mlist[0].inner(ih))
 #out, _ = model(example)
 
 #print((out-out_ref).max(), (out-out_ref).var().sqrt())

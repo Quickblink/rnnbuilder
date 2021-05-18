@@ -29,8 +29,8 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Base classes not intended for direct use.&#34;&#34;&#34;
-from ._modules import OuterModule, ModuleBase
-import rnnbuilder as rb
+from ._modules import _OuterModule, _ModuleBase
+import rnnbuilder as _rb
 
 class ModuleFactory:
     &#34;&#34;&#34;Factory base class. Factories are used to build networks recursively. Call `make_model` to get a PyTorch model.
@@ -39,10 +39,10 @@ class ModuleFactory:
         &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         &#34;&#34;&#34;
-        return OuterModule(self._assemble_module(in_shape, False))
+        return _OuterModule(self._assemble_module(in_shape, False))
 
     def _assemble_module(self, in_shape, unrolled):
-        return ModuleBase(in_shape)
+        return _ModuleBase(in_shape)
 
     def _shape_change(self, in_shape):
         return in_shape
@@ -64,26 +64,26 @@ class LayerBase(LayerInput):
                 &#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Sum(self, *layers)
+        return _rb.Sum(self, *layers)
 
-    def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.Stack&#39;:
-        &#34;&#34;&#34;stacks self and given layers along the first data dimension using `torch.cat` to form an input for a `Layer`
+    def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.Stack&#39;:
+        &#34;&#34;&#34;stacks self and given layers along the first data dimension using `_torch.cat` to form an input for a `Layer`
         &#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Stack(self, *layers)
+        return _rb.Stack(self, *layers)
 
-    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.List&#39;:
         &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.List(self, *layers)
+        return _rb.List(self, *layers)
 
     def apply(self, *module_facs, placeholder=None):
-        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
+        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Layer(self, module_facs, placeholder=placeholder)
+        return _rb.Layer(self, module_facs, placeholder=placeholder)
 
 
 class InputBase(LayerInput):
@@ -93,8 +93,8 @@ class InputBase(LayerInput):
         self.layers = layers
 
     def apply(self, *module_facs, placeholder=None):
-        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
-        return rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
+        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
+        return _rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
 </details>
 </section>
 <section>
@@ -123,8 +123,8 @@ class InputBase(LayerInput):
         self.layers = layers
 
     def apply(self, *module_facs, placeholder=None):
-        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
-        return rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
+        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
+        return _rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -142,14 +142,14 @@ class InputBase(LayerInput):
 <span>def <span class="ident">apply</span></span>(<span>self, *module_facs, placeholder=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A <code><a title="rnnbuilder.Layer" href="../index.html#rnnbuilder.Layer">Layer</a></code> is formed by applying the given <code><a title="rnnbuilder.base.ModuleFactory" href="#rnnbuilder.base.ModuleFactory">ModuleFactory</a></code>s to the calling input aggregate.</p></div>
+<div class="desc"><p>A <code><a title="rnnbuilder.Layer" href="../index.html#rnnbuilder.Layer">Layer</a></code> is formed by applying the given <code>_ModuleFactory</code>s to the calling input aggregate.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def apply(self, *module_facs, placeholder=None):
-    &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
-    return rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
+    &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the calling input aggregate.&#34;&#34;&#34;
+    return _rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
 </details>
 </dd>
 </dl>
@@ -173,26 +173,26 @@ class InputBase(LayerInput):
                 &#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Sum(self, *layers)
+        return _rb.Sum(self, *layers)
 
-    def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.Stack&#39;:
-        &#34;&#34;&#34;stacks self and given layers along the first data dimension using `torch.cat` to form an input for a `Layer`
+    def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.Stack&#39;:
+        &#34;&#34;&#34;stacks self and given layers along the first data dimension using `_torch.cat` to form an input for a `Layer`
         &#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Stack(self, *layers)
+        return _rb.Stack(self, *layers)
 
-    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+    def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.List&#39;:
         &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.List(self, *layers)
+        return _rb.List(self, *layers)
 
     def apply(self, *module_facs, placeholder=None):
-        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
+        &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
         if not self._registered:
             raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-        return rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
+        return _rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -214,44 +214,44 @@ class InputBase(LayerInput):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.List&#39;:
+<pre><code class="python">def append(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.List&#39;:
     &#34;&#34;&#34;returns a `rnnbuilder.List`&#34;&#34;&#34;
     if not self._registered:
         raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-    return rb.List(self, *layers)</code></pre>
+    return _rb.List(self, *layers)</code></pre>
 </details>
 </dd>
 <dt id="rnnbuilder.base.LayerBase.apply"><code class="name flex">
 <span>def <span class="ident">apply</span></span>(<span>self, *module_facs, placeholder=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A <code><a title="rnnbuilder.Layer" href="../index.html#rnnbuilder.Layer">Layer</a></code> is formed by applying the given <code><a title="rnnbuilder.base.ModuleFactory" href="#rnnbuilder.base.ModuleFactory">ModuleFactory</a></code>s to the output of the calling layer.</p></div>
+<div class="desc"><p>A <code><a title="rnnbuilder.Layer" href="../index.html#rnnbuilder.Layer">Layer</a></code> is formed by applying the given <code>_ModuleFactory</code>s to the output of the calling layer.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def apply(self, *module_facs, placeholder=None):
-    &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
+    &#34;&#34;&#34;A `rnnbuilder.Layer` is formed by applying the given `_ModuleFactory`s to the output of the calling layer.&#34;&#34;&#34;
     if not self._registered:
         raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-    return rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
+    return _rb.Layer(self, module_facs, placeholder=placeholder)</code></pre>
 </details>
 </dd>
 <dt id="rnnbuilder.base.LayerBase.stack"><code class="name flex">
 <span>def <span class="ident">stack</span></span>(<span>self, *layers: <a title="rnnbuilder.base.LayerBase" href="#rnnbuilder.base.LayerBase">LayerBase</a>) ‑> <a title="rnnbuilder.Stack" href="../index.html#rnnbuilder.Stack">Stack</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>stacks self and given layers along the first data dimension using <code>torch.cat</code> to form an input for a <code>Layer</code></p></div>
+<div class="desc"><p>stacks self and given layers along the first data dimension using <code>_torch.cat</code> to form an input for a <code>Layer</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;rb.Stack&#39;:
-    &#34;&#34;&#34;stacks self and given layers along the first data dimension using `torch.cat` to form an input for a `Layer`
+<pre><code class="python">def stack(self, *layers: &#39;LayerBase&#39;) -&gt; &#39;_rb.Stack&#39;:
+    &#34;&#34;&#34;stacks self and given layers along the first data dimension using `_torch.cat` to form an input for a `Layer`
     &#34;&#34;&#34;
     if not self._registered:
         raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-    return rb.Stack(self, *layers)</code></pre>
+    return _rb.Stack(self, *layers)</code></pre>
 </details>
 </dd>
 <dt id="rnnbuilder.base.LayerBase.sum"><code class="name flex">
@@ -268,7 +268,7 @@ class InputBase(LayerInput):
             &#34;&#34;&#34;
     if not self._registered:
         raise Exception(&#39;This layer is not part of a network yet. Chaining is not allowed.&#39;)
-    return rb.Sum(self, *layers)</code></pre>
+    return _rb.Sum(self, *layers)</code></pre>
 </details>
 </dd>
 </dl>
@@ -308,10 +308,10 @@ class InputBase(LayerInput):
         &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         &#34;&#34;&#34;
-        return OuterModule(self._assemble_module(in_shape, False))
+        return _OuterModule(self._assemble_module(in_shape, False))
 
     def _assemble_module(self, in_shape, unrolled):
-        return ModuleBase(in_shape)
+        return _ModuleBase(in_shape)
 
     def _shape_change(self, in_shape):
         return in_shape</code></pre>
@@ -320,8 +320,8 @@ class InputBase(LayerInput):
 <ul class="hlist">
 <li><a title="rnnbuilder.Network" href="../index.html#rnnbuilder.Network">Network</a></li>
 <li><a title="rnnbuilder.Sequential" href="../index.html#rnnbuilder.Sequential">Sequential</a></li>
-<li>rnnbuilder.custom._factories.NonRecurrentFactory</li>
-<li>rnnbuilder.custom._factories.RecurrentFactory</li>
+<li>rnnbuilder.custom._factories._NonRecurrentFactory</li>
+<li>rnnbuilder.custom._factories._RecurrentFactory</li>
 <li><a title="rnnbuilder.nn.BatchNorm2d" href="../nn/index.html#rnnbuilder.nn.BatchNorm2d">BatchNorm2d</a></li>
 <li><a title="rnnbuilder.nn.Linear" href="../nn/index.html#rnnbuilder.nn.Linear">Linear</a></li>
 <li><a title="rnnbuilder.nn.ReLU" href="../nn/index.html#rnnbuilder.nn.ReLU">ReLU</a></li>
@@ -345,7 +345,7 @@ previous calls with its own parameters. This applies to sub-modules as well. Par
     &#34;&#34;&#34;Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
     previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
     &#34;&#34;&#34;
-    return OuterModule(self._assemble_module(in_shape, False))</code></pre>
+    return _OuterModule(self._assemble_module(in_shape, False))</code></pre>
 </details>
 </dd>
 </dl>

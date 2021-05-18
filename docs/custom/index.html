@@ -29,16 +29,15 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Functions to extend this library with custom modules&#34;&#34;&#34;
-from typing import Union, Callable, Literal, Optional, Type
-from torch import nn
-import torch
-from ._factories import NonRecurrentFactory, RecurrentFactory
-from abc import ABC, abstractmethod
+from typing import Type
+import torch as _torch
+from ._factories import _NonRecurrentFactory, _RecurrentFactory
+from abc import ABC as _ABC, abstractmethod as _abstractmethod
 
 __pdoc__ = {&#39;CustomModule.training&#39; : False, &#39;CustomModule.dump_patches&#39; : False}
 
 
-class CustomModule(torch.nn.Module, ABC):
+class CustomModule(_torch.nn.Module, _ABC):
     &#34;&#34;&#34;Abstract base class for custom recurrent modules. Inheriting classes must be registered with `register_recurrent`
     to retrieve a corresponding factory class. The factory class will initialize with the same parameters as the
     registered CustomModule.
@@ -50,7 +49,7 @@ class CustomModule(torch.nn.Module, ABC):
         &#34;&#34;&#34;
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def get_out_shape(self, in_shape):
         &#34;&#34;&#34;
         Args:
@@ -72,9 +71,9 @@ class CustomModule(torch.nn.Module, ABC):
             full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
                 always be 1.
         &#34;&#34;&#34;
-        return torch.zeros(full_shape, device=self.device)
+        return _torch.zeros(full_shape, device=self.device)
 
-    @abstractmethod
+    @_abstractmethod
     def forward(self, input, state):
         &#34;&#34;&#34;Must be implemented with the following signature.
         Args:
@@ -102,18 +101,18 @@ class _NonRecurrentGenerator:
         self._prepare_input = prepare_input
 
     def __call__(self, *args, **kwargs):
-        return NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
+        return _NonRecurrentFactory(self._make_module, self._prepare_input, self._shape_change, *args, **kwargs)
 
 
-def register_non_recurrent(*, module_class: Type[torch.nn.Module],
-                                 flatten_input: bool,
-                                 shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
+def register_non_recurrent(*, module_class: Type[_torch.nn.Module],
+                           flatten_input: bool,
+                           shape_change: bool):
+    &#34;&#34;&#34;Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
@@ -133,8 +132,8 @@ class _RecurrentGenerator:
         self._unroll_full_state = unroll_full_state
 
     def __call__(self, *args, **kwargs):
-        return RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
-                                *args, **kwargs)
+        return _RecurrentFactory(self._module_class, self._prepare_input, self._single_step, self._unroll_full_state,
+                                 *args, **kwargs)
 
 def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
                        single_step: bool, unroll_full_state: bool = True):
@@ -147,7 +146,7 @@ def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
         single_step: If True, for each time step the forward method of the module will be invoked with a tensor of
             format (batch, data_shape). If False, it will be only invoked once with a tensor of format
             (time, batch, data_shape).
-        unroll_full_state: (Optional) If True and the state for every time step is required (full_state mode), the
+        unroll_full_state: (_Optional) If True and the state for every time step is required (full_state mode), the
             module will be invoked for each time step even if single_step=False. If False, the module has to check for
             self._full_state and return a sequence of states appropriately
     &#34;&#34;&#34;
@@ -167,13 +166,13 @@ def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
 <span>def <span class="ident">register_non_recurrent</span></span>(<span>*, module_class: Type[torch.nn.modules.module.Module], flatten_input: bool, shape_change: bool)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
+<div class="desc"><p>Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
 the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
 <code><a title="rnnbuilder.custom.CustomModule" href="#rnnbuilder.custom.CustomModule">CustomModule</a></code> and use <code><a title="rnnbuilder.custom.register_recurrent" href="#rnnbuilder.custom.register_recurrent">register_recurrent()</a></code> instead.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>module_class</code></strong></dt>
-<dd>a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
+<dd>a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
 It must accept a single input tensor of format (batch, data0, data1, &hellip;) and return a single output tensor.</dd>
 <dt><strong><code>flatten_input</code></strong></dt>
 <dd>If True, the input is flattened to shape (batch, data0<em>data1</em>&hellip;) before given to the module.</dd>
@@ -185,15 +184,15 @@ It must accept a single input tensor of format (batch, data0, data1, &hellip;) a
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_non_recurrent(*, module_class: Type[torch.nn.Module],
-                                 flatten_input: bool,
-                                 shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) torch.torch.nn.Module to retrieve a factory class. The factory class will initialize with
+<pre><code class="python">def register_non_recurrent(*, module_class: Type[_torch.nn.Module],
+                           flatten_input: bool,
+                           shape_change: bool):
+    &#34;&#34;&#34;Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from torch.torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
@@ -222,7 +221,7 @@ with the same parameters as the registered <code><a title="rnnbuilder.custom.Cus
 format (batch, data_shape). If False, it will be only invoked once with a tensor of format
 (time, batch, data_shape).</dd>
 <dt><strong><code>unroll_full_state</code></strong></dt>
-<dd>(Optional) If True and the state for every time step is required (full_state mode), the
+<dd>(_Optional) If True and the state for every time step is required (full_state mode), the
 module will be invoked for each time step even if single_step=False. If False, the module has to check for
 self._full_state and return a sequence of states appropriately</dd>
 </dl></div>
@@ -241,7 +240,7 @@ self._full_state and return a sequence of states appropriately</dd>
         single_step: If True, for each time step the forward method of the module will be invoked with a tensor of
             format (batch, data_shape). If False, it will be only invoked once with a tensor of format
             (time, batch, data_shape).
-        unroll_full_state: (Optional) If True and the state for every time step is required (full_state mode), the
+        unroll_full_state: (_Optional) If True and the state for every time step is required (full_state mode), the
             module will be invoked for each time step even if single_step=False. If False, the module has to check for
             self._full_state and return a sequence of states appropriately
     &#34;&#34;&#34;
@@ -267,7 +266,7 @@ registered CustomModule.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class CustomModule(torch.nn.Module, ABC):
+<pre><code class="python">class CustomModule(_torch.nn.Module, _ABC):
     &#34;&#34;&#34;Abstract base class for custom recurrent modules. Inheriting classes must be registered with `register_recurrent`
     to retrieve a corresponding factory class. The factory class will initialize with the same parameters as the
     registered CustomModule.
@@ -279,7 +278,7 @@ registered CustomModule.</p>
         &#34;&#34;&#34;
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def get_out_shape(self, in_shape):
         &#34;&#34;&#34;
         Args:
@@ -301,9 +300,9 @@ registered CustomModule.</p>
             full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
                 always be 1.
         &#34;&#34;&#34;
-        return torch.zeros(full_shape, device=self.device)
+        return _torch.zeros(full_shape, device=self.device)
 
-    @abstractmethod
+    @_abstractmethod
     def forward(self, input, state):
         &#34;&#34;&#34;Must be implemented with the following signature.
         Args:
@@ -331,9 +330,9 @@ registered CustomModule.</p>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="rnnbuilder.rnn.modules.LSTMModule" href="../rnn/modules.html#rnnbuilder.rnn.modules.LSTMModule">LSTMModule</a></li>
-<li><a title="rnnbuilder.rnn.modules.TempConvPlus2dModule" href="../rnn/modules.html#rnnbuilder.rnn.modules.TempConvPlus2dModule">TempConvPlus2dModule</a></li>
-<li><a title="rnnbuilder.snn.modules.NoResetNeuron" href="../snn/modules.html#rnnbuilder.snn.modules.NoResetNeuron">NoResetNeuron</a></li>
+<li>rnnbuilder.rnn._modules._LSTMModule</li>
+<li>rnnbuilder.rnn._modules._TempConvPlus2dModule</li>
+<li>rnnbuilder.snn._modules._NoResetNeuron</li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -378,7 +377,7 @@ with <code>get_initial_state</code>). The empty tuple is used to indicate no sta
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@abstractmethod
+<pre><code class="python">@_abstractmethod
 def forward(self, input, state):
     &#34;&#34;&#34;Must be implemented with the following signature.
     Args:
@@ -419,7 +418,7 @@ always be 1.</dd>
         full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
             always be 1.
     &#34;&#34;&#34;
-    return torch.zeros(full_shape, device=self.device)</code></pre>
+    return _torch.zeros(full_shape, device=self.device)</code></pre>
 </details>
 </dd>
 <dt id="rnnbuilder.custom.CustomModule.get_initial_state"><code class="name flex">
@@ -455,7 +454,7 @@ applied</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@abstractmethod
+<pre><code class="python">@_abstractmethod
 def get_out_shape(self, in_shape):
     &#34;&#34;&#34;
     Args:

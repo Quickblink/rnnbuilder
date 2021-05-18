@@ -27,14 +27,13 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from ..base import ModuleFactory
-from ..custom._factories import RecurrentFactory
-from .modules import LSTMModule, TempConvPlus2dModule
-import torch
+<pre><code class="python">import torch as _torch
+from ..custom._factories import _RecurrentFactory
+from ._modules import _LSTMModule, _TempConvPlus2dModule
 from torch.nn.modules.utils import _pair
 
 
-class LSTM(RecurrentFactory):
+class LSTM(_RecurrentFactory):
     r&#34;&#34;&#34;Applies a multi-layer long short-term memory (LSTM) RNN to an input
     sequence.
 
@@ -80,11 +79,11 @@ class LSTM(RecurrentFactory):
     def __init__(self, hidden_size: int,
                  num_layers: int = 1, bias: bool = True,
                  dropout: float = 0.) -&gt; None:
-        super().__init__(LSTMModule, &#39;flatten&#39;, False, True, hidden_size, num_layers, bias, dropout)
+        super().__init__(_LSTMModule, &#39;flatten&#39;, False, True, hidden_size, num_layers, bias, dropout)
 
 
 
-class TempConvPlus2d(RecurrentFactory):
+class TempConvPlus2d(_RecurrentFactory):
     &#34;&#34;&#34;A 2d-convolution combined with a convolution over the time dimension.
     Useful for e.g. frame stacking in Q-Learning.
 
@@ -109,19 +108,19 @@ class TempConvPlus2d(RecurrentFactory):
     def __init__(
         self,
         out_channels: int,
-        kernel_size: torch.nn.common_types._size_2_t,
-        time_kernel_size: torch.nn.common_types._size_1_t,
-        stride: torch.nn.common_types._size_2_t = 1,
-        padding: torch.nn.common_types._size_2_t = 0,
-        dilation: torch.nn.common_types._size_2_t = 1,
-        time_stride: torch.nn.common_types._size_1_t = 1,
-        time_padding: torch.nn.common_types._size_1_t = 0,
-        time_dilation: torch.nn.common_types._size_1_t = 1,
+        kernel_size: _torch.nn.common_types._size_2_t,
+        time_kernel_size: _torch.nn.common_types._size_1_t,
+        stride: _torch.nn.common_types._size_2_t = 1,
+        padding: _torch.nn.common_types._size_2_t = 0,
+        dilation: _torch.nn.common_types._size_2_t = 1,
+        time_stride: _torch.nn.common_types._size_1_t = 1,
+        time_padding: _torch.nn.common_types._size_1_t = 0,
+        time_dilation: _torch.nn.common_types._size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
         padding_mode: str = &#39;zeros&#39;
     ):
-        super().__init__(TempConvPlus2dModule, False, False, False, out_channels=out_channels,
+        super().__init__(_TempConvPlus2dModule, False, False, False, out_channels=out_channels,
                          kernel_size=(time_kernel_size,)+tuple(_pair(kernel_size)),
                          stride=(time_stride,) + tuple(_pair(stride)),
                          padding=(time_padding,) + tuple(_pair(padding)),
@@ -130,13 +129,6 @@ class TempConvPlus2d(RecurrentFactory):
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="rnnbuilder.rnn.modules" href="modules.html">rnnbuilder.rnn.modules</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
@@ -200,7 +192,7 @@ LSTM layer except the last layer, with dropout probability equal to
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class LSTM(RecurrentFactory):
+<pre><code class="python">class LSTM(_RecurrentFactory):
     r&#34;&#34;&#34;Applies a multi-layer long short-term memory (LSTM) RNN to an input
     sequence.
 
@@ -246,11 +238,11 @@ LSTM layer except the last layer, with dropout probability equal to
     def __init__(self, hidden_size: int,
                  num_layers: int = 1, bias: bool = True,
                  dropout: float = 0.) -&gt; None:
-        super().__init__(LSTMModule, &#39;flatten&#39;, False, True, hidden_size, num_layers, bias, dropout)</code></pre>
+        super().__init__(_LSTMModule, &#39;flatten&#39;, False, True, hidden_size, num_layers, bias, dropout)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>rnnbuilder.custom._factories.RecurrentFactory</li>
+<li>rnnbuilder.custom._factories._RecurrentFactory</li>
 <li><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
 </ul>
 <h3>Inherited members</h3>
@@ -304,7 +296,7 @@ output. Default: <code>True</code></dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TempConvPlus2d(RecurrentFactory):
+<pre><code class="python">class TempConvPlus2d(_RecurrentFactory):
     &#34;&#34;&#34;A 2d-convolution combined with a convolution over the time dimension.
     Useful for e.g. frame stacking in Q-Learning.
 
@@ -329,19 +321,19 @@ output. Default: <code>True</code></dd>
     def __init__(
         self,
         out_channels: int,
-        kernel_size: torch.nn.common_types._size_2_t,
-        time_kernel_size: torch.nn.common_types._size_1_t,
-        stride: torch.nn.common_types._size_2_t = 1,
-        padding: torch.nn.common_types._size_2_t = 0,
-        dilation: torch.nn.common_types._size_2_t = 1,
-        time_stride: torch.nn.common_types._size_1_t = 1,
-        time_padding: torch.nn.common_types._size_1_t = 0,
-        time_dilation: torch.nn.common_types._size_1_t = 1,
+        kernel_size: _torch.nn.common_types._size_2_t,
+        time_kernel_size: _torch.nn.common_types._size_1_t,
+        stride: _torch.nn.common_types._size_2_t = 1,
+        padding: _torch.nn.common_types._size_2_t = 0,
+        dilation: _torch.nn.common_types._size_2_t = 1,
+        time_stride: _torch.nn.common_types._size_1_t = 1,
+        time_padding: _torch.nn.common_types._size_1_t = 0,
+        time_dilation: _torch.nn.common_types._size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
         padding_mode: str = &#39;zeros&#39;
     ):
-        super().__init__(TempConvPlus2dModule, False, False, False, out_channels=out_channels,
+        super().__init__(_TempConvPlus2dModule, False, False, False, out_channels=out_channels,
                          kernel_size=(time_kernel_size,)+tuple(_pair(kernel_size)),
                          stride=(time_stride,) + tuple(_pair(stride)),
                          padding=(time_padding,) + tuple(_pair(padding)),
@@ -350,7 +342,7 @@ output. Default: <code>True</code></dd>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>rnnbuilder.custom._factories.RecurrentFactory</li>
+<li>rnnbuilder.custom._factories._RecurrentFactory</li>
 <li><a title="rnnbuilder.base.ModuleFactory" href="../base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a></li>
 </ul>
 <h3>Inherited members</h3>
@@ -374,11 +366,6 @@ output. Default: <code>True</code></dd>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="rnnbuilder" href="../index.html">rnnbuilder</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="rnnbuilder.rnn.modules" href="modules.html">rnnbuilder.rnn.modules</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

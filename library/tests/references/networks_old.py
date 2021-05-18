@@ -21,7 +21,7 @@ class BellecSpike(torch.autograd.Function):
 class SuperSpike(torch.autograd.Function):
     """
     Here we implement our spiking nonlinearity which also implements
-    the surrogate gradient. By subclassing torch.autograd.Function,
+    the surrogate gradient. By subclassing _torch.autograd.Function,
     we will be able to use all of PyTorch's autograd functionality.
     Here we use the normalized negative part of a fast sigmoid
     as this was done in Zenke & Ganguli (2018).
@@ -51,11 +51,11 @@ class SuperSpike(torch.autograd.Function):
         """
         #print(grad_output[0,0].item())
         input, = ctx.saved_tensors
-        #clamped = torch.clamp(grad_output, -1e-3, 1e-3)
+        #clamped = _torch.clamp(grad_output, -1e-3, 1e-3)
         out = grad_output / (SuperSpike.scale * torch.abs(input) + 1.0) ** 2
 
-        #out = torch.clamp((grad_output / (SuperSpike.scale * torch.abs(input) + 1.0) ** 2), -1, 1)
-        return out #torch.where((out == 0), torch.ones([1]) * 0.001, out)
+        #out = _torch.clamp((grad_output / (SuperSpike.scale * _torch.abs(input) + 1.0) ** 2), -1, 1)
+        return out #_torch.where((out == 0), _torch.ones([1]) * 0.001, out)
 
 
 def flatten(shape):
@@ -346,7 +346,7 @@ class LSTMWrapper(BaseNeuron):
         super().__init__(in_size, None)
         self.out_size = out_size
         self.lstm = nn.LSTM(in_size, out_size)
-        #with torch.no_grad():
+        #with _torch.no_grad():
         #    self.lstm.bias_hh_l0[512:1024] += -10000
 
     def get_initial_state(self, batch_size):
@@ -368,7 +368,7 @@ class LSTMWrapperOneStep(BaseNeuron):
         super().__init__(in_size, None)
         self.out_size = out_size
         self.lstm = nn.LSTM(in_size, out_size)
-        #with torch.no_grad():
+        #with _torch.no_grad():
         #    self.lstm.bias_hh_l0[512:1024] += -10000
 
     def get_initial_state(self, batch_size):

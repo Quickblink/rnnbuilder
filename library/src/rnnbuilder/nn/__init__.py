@@ -1,15 +1,14 @@
-""" This module provides factories for standard torch modules. Documentation and signatures are directly copied from
+""" This module provides factories for standard _torch modules. Documentation and signatures are directly copied from
 PyTorch and copyright applies accordingly.
 """
-import torch
-from ..base import ModuleFactory
-from ..custom._modules import StatelessWrapper
-from ..custom._factories import NonRecurrentFactory
-from ..base._utils import flatten_shape
-from torch import nn
-from typing import Optional
+import torch as _torch
+from ..base import ModuleFactory as _ModuleFactory
+from ..custom._modules import _StatelessWrapper
+from ..custom._factories import _NonRecurrentFactory
+from ..base._utils import _flatten_shape
+from typing import Optional as _Optional
 
-class Linear(ModuleFactory):
+class Linear(_ModuleFactory):
     r"""Applies a linear transformation to the incoming data: \(y = xA^T + b\)
 
     Args:
@@ -25,14 +24,14 @@ class Linear(ModuleFactory):
         self.bias = bias
 
     def _assemble_module(self, in_shape, unrolled):
-        f_shape = flatten_shape(in_shape)
-        return StatelessWrapper(f_shape, (self.out_features,), torch.nn.Linear(f_shape[0], self.out_features, self.bias))
+        f_shape = _flatten_shape(in_shape)
+        return _StatelessWrapper(f_shape, (self.out_features,), _torch.nn.Linear(f_shape[0], self.out_features, self.bias))
 
     def _shape_change(self, in_shape):
         return (self.out_features,)
 
 
-class Conv2d(NonRecurrentFactory):
+class Conv2d(_NonRecurrentFactory):
     r"""Applies a 2D convolution over an input signal composed of several input
     planes.
 
@@ -54,18 +53,18 @@ class Conv2d(NonRecurrentFactory):
     def __init__(
         self,
         out_channels: int,
-        kernel_size: torch.nn.common_types._size_2_t,
-        stride: torch.nn.common_types._size_2_t = 1,
-        padding: torch.nn.common_types._size_2_t = 0,
-        dilation: torch.nn.common_types._size_2_t = 1,
+        kernel_size: _torch.nn.common_types._size_2_t,
+        stride: _torch.nn.common_types._size_2_t = 1,
+        padding: _torch.nn.common_types._size_2_t = 0,
+        dilation: _torch.nn.common_types._size_2_t = 1,
         groups: int = 1,
         bias: bool = True,
         padding_mode: str = 'zeros'
     ):
-        super().__init__((lambda in_shape, *args: torch.nn.Conv2d(in_shape[0], *args)), False, 'auto',
+        super().__init__((lambda in_shape, *args: _torch.nn.Conv2d(in_shape[0], *args)), False, 'auto',
                          out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode)
 
-class ReLU(ModuleFactory):
+class ReLU(_ModuleFactory):
     r"""Applies the rectified linear unit function element-wise:
 
     .. math::
@@ -81,10 +80,10 @@ class ReLU(ModuleFactory):
         self.inplace = inplace
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, torch.nn.ReLU(inplace=self.inplace))
+        return _StatelessWrapper(in_shape, in_shape, _torch.nn.ReLU(inplace=self.inplace))
 
 
-class Sigmoid(ModuleFactory):
+class Sigmoid(_ModuleFactory):
     r"""Applies the element-wise function:
 
     .. math::
@@ -92,10 +91,10 @@ class Sigmoid(ModuleFactory):
     """
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, torch.nn.Sigmoid())
+        return _StatelessWrapper(in_shape, in_shape, _torch.nn.Sigmoid())
 
 
-class Tanh(ModuleFactory):
+class Tanh(_ModuleFactory):
     r"""Applies the element-wise function:
 
     .. math::
@@ -103,11 +102,11 @@ class Tanh(ModuleFactory):
     """
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, torch.nn.Tanh())
+        return _StatelessWrapper(in_shape, in_shape, _torch.nn.Tanh())
 
 
 
-class BatchNorm2d(ModuleFactory):
+class BatchNorm2d(_ModuleFactory):
     r"""Applies Batch Normalization over a 4D input (a mini-batch of 2D inputs
     with additional channel dimension) as described in the paper
     [Batch Normalization: Accelerating Deep Network Training by Reducing
@@ -148,10 +147,10 @@ class BatchNorm2d(ModuleFactory):
         self.args = eps, momentum, affine, track_running_stats
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, torch.nn.BatchNorm2d(in_shape[0], *self.args))
+        return _StatelessWrapper(in_shape, in_shape, _torch.nn.BatchNorm2d(in_shape[0], *self.args))
 
 
-class MaxPool2d(NonRecurrentFactory):
+class MaxPool2d(_NonRecurrentFactory):
     r"""Applies a 2D max pooling over an input signal composed of several input
     planes.
 
@@ -183,7 +182,7 @@ class MaxPool2d(NonRecurrentFactory):
 
     """
 
-    def __init__(self, kernel_size: torch.nn.common_types._size_any_t, stride: Optional[torch.nn.common_types._size_any_t] = None,
-                 padding: torch.nn.common_types._size_any_t = 0, dilation: torch.nn.common_types._size_any_t = 1) -> None:
-        super().__init__((lambda in_shape, *args: torch.nn.MaxPool2d(*args)), False, 'auto',
+    def __init__(self, kernel_size: _torch.nn.common_types._size_any_t, stride: _Optional[_torch.nn.common_types._size_any_t] = None,
+                 padding: _torch.nn.common_types._size_any_t = 0, dilation: _torch.nn.common_types._size_any_t = 1) -> None:
+        super().__init__((lambda in_shape, *args: _torch.nn.MaxPool2d(*args)), False, 'auto',
                          kernel_size, stride, padding, dilation)

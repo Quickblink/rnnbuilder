@@ -1,6 +1,6 @@
 """Base classes not intended for direct use."""
-from ._modules import OuterModule, ModuleBase
-import rnnbuilder as rb
+from ._modules import _OuterModule, _ModuleBase
+import rnnbuilder as _rb
 
 class ModuleFactory:
     """Factory base class. Factories are used to build networks recursively. Call `make_model` to get a PyTorch model.
@@ -9,10 +9,10 @@ class ModuleFactory:
         """Returns a usable PyTorch model corresponding to the factory. Every call returns a model independent from
         previous calls with its own parameters. This applies to sub-modules as well. Parameter sharing is not supported.
         """
-        return OuterModule(self._assemble_module(in_shape, False))
+        return _OuterModule(self._assemble_module(in_shape, False))
 
     def _assemble_module(self, in_shape, unrolled):
-        return ModuleBase(in_shape)
+        return _ModuleBase(in_shape)
 
     def _shape_change(self, in_shape):
         return in_shape
@@ -34,26 +34,26 @@ class LayerBase(LayerInput):
                 """
         if not self._registered:
             raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
-        return rb.Sum(self, *layers)
+        return _rb.Sum(self, *layers)
 
-    def stack(self, *layers: 'LayerBase') -> 'rb.Stack':
+    def stack(self, *layers: 'LayerBase') -> '_rb.Stack':
         """stacks self and given layers along the first data dimension using `torch.cat` to form an input for a `Layer`
         """
         if not self._registered:
             raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
-        return rb.Stack(self, *layers)
+        return _rb.Stack(self, *layers)
 
-    def append(self, *layers: 'LayerBase') -> 'rb.List':
+    def append(self, *layers: 'LayerBase') -> '_rb.List':
         """returns a `rnnbuilder.List`"""
         if not self._registered:
             raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
-        return rb.List(self, *layers)
+        return _rb.List(self, *layers)
 
     def apply(self, *module_facs, placeholder=None):
         """A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the output of the calling layer."""
         if not self._registered:
             raise Exception('This layer is not part of a network yet. Chaining is not allowed.')
-        return rb.Layer(self, module_facs, placeholder=placeholder)
+        return _rb.Layer(self, module_facs, placeholder=placeholder)
 
 
 class InputBase(LayerInput):
@@ -64,4 +64,4 @@ class InputBase(LayerInput):
 
     def apply(self, *module_facs, placeholder=None):
         """A `rnnbuilder.Layer` is formed by applying the given `ModuleFactory`s to the calling input aggregate."""
-        return rb.Layer(self, module_facs, placeholder=placeholder)
+        return _rb.Layer(self, module_facs, placeholder=placeholder)

@@ -8,8 +8,8 @@ specification for a network or sub-network and can be invoked to yield independe
 Classic PyTorch code:
 ```
 input_shape = (10,)
-linear = torch.torch.nn.Linear(in_features=10,out_features=10)
-model = torch.torch.nn.Sequential(linear, linear)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
 
 input = torch.rand(input_shape)
 output = model(input)
@@ -19,7 +19,7 @@ The above code applies a matrix multiplication with a *single weight matrix* twi
 rnnbuilder **(not equivalent)**:
 ```
 input_shape = (7,)
-linear = rnnbuilder.torch.nn.Linear(out_features=10)
+linear = rnnbuilder.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
@@ -67,7 +67,7 @@ n.output = n.o.append(n.tan_c).apply(Hadamard())
 
 ##Modules
 rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
-signatures to the torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
+signatures to the `torch.nn` modules (without in_features or in_channels). Additionally, some specific factories for RNN
 and SNN modules are provided under the corresponding submodules.
 
 If you need to use any other modules, `rnnbuilder.custom` provides a base class and registration methods to retrieve
@@ -76,25 +76,23 @@ corresponding factory classes.
 
 
 """
-#TODO: make nn module and test example
-#TODO: implement list input
 import torch as _torch
 from typing import Union as _Union, Callable as _Callable, Iterable as _Iterable
-from .base._modules import InnerNetworkModule as _InnerNetworkModule, OuterNetworkModule, NestedNetworkModule, SequentialModule
-from .base import ModuleFactory, LayerInput, LayerBase, InputBase
-from .base._utils import shape_sum, any
-from . import custom
+from .base._modules import _InnerNetworkModule, _OuterNetworkModule, _NestedNetworkModule, _SequentialModule
+from .base import ModuleFactory as _ModuleFactory, LayerInput as _LayerInput, LayerBase as _LayerBase, InputBase as _InputBase
+from .base._utils import _shape_sum, _any
+from . import custom, rnn, snn, nn
 
 
 
 
-class Sequential(ModuleFactory):
-    """Equivalent to `torch.torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
+class Sequential(_ModuleFactory):
+    """Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically."""
 
-    def __init__(self, *module_factory: _Union[ModuleFactory, _Iterable[ModuleFactory]]):
+    def __init__(self, *module_factory: _Union[_ModuleFactory, _Iterable[_ModuleFactory]]):
         super().__init__()
-        self.module_facs = module_factory if all([isinstance(m, ModuleFactory) for m in module_factory]) \
+        self.module_facs = module_factory if all([isinstance(m, _ModuleFactory) for m in module_factory]) \
             else list(module_factory[0])
 
     def _shape_change(self, in_shape):
@@ -110,30 +108,30 @@ class Sequential(ModuleFactory):
             new_module = factory._assemble_module(cur_shape, unrolled)
             cur_shape = factory._shape_change(cur_shape)
             mlist.append(new_module)
-        return SequentialModule(in_shape, mlist)
+        return _SequentialModule(in_shape, mlist)
 
 
-class Stack(InputBase):
+class Stack(_InputBase):
     """Stacks inputs along the first data dimension using `torch.cat`. Is used as an input to `Layer` in `Network`"""
     pass
 
 
-class Sum(InputBase):
+class Sum(_InputBase):
     """Adds up inputs element-wise. Is used as an input to `Layer` in `Network`"""
     _mode = 'sum'
 
-class List(InputBase):
+class List(_InputBase):
     """Provides multiple inputs to the next `Layer` in `Network` as a list. Only works with specific factories."""
     _mode = 'list'
 
 
-class Placeholder(LayerBase):
+class Placeholder(_LayerBase):
     """Can be assigned as an attribute to a `Network` to represent a layer output of the previous time step. Needs to be
     linked to a `Layer` by either overwriting the attribute with a `Layer` or handing it directly to the `Layer` as an
     optional initialization parameter.
 
     Args:
-        initial_value: Optional; function that returns the initial output value used for the first step /
+        initial_value: (optional) function that returns the initial output value used for the first step /
             initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`'s class."""
     _inputs = set()
 
@@ -148,7 +146,7 @@ class Placeholder(LayerBase):
         return self._layer
 
 
-class Layer(LayerBase):
+class Layer(_LayerBase):
     """Can be assigned as attribute to a `Network` as its main building block. When assigned to an attribute holding a
     `Placeholder`, they are linked automatically.
 
@@ -161,15 +159,15 @@ class Layer(LayerBase):
             required after layer definition (prohibiting overwriting the attribute as described above)
 
     """
-    def __init__(self, input: LayerInput, factory: _Union[ModuleFactory, _Iterable[ModuleFactory]],
+    def __init__(self, input: _LayerInput, factory: _Union[_ModuleFactory, _Iterable[_ModuleFactory]],
                  placeholder: Placeholder = None):
         super().__init__()
-        if isinstance(input, InputBase):
+        if isinstance(input, _InputBase):
             self._inputs = input.layers
         else:
             self._inputs = (input,)
         self.mode = input._mode
-        if not isinstance(factory, ModuleFactory):
+        if not isinstance(factory, _ModuleFactory):
             factory = list(factory)
             self.factory = factory[0] if len(factory) == 1 else Sequential(*factory)
         else:
@@ -179,7 +177,7 @@ class Layer(LayerBase):
             placeholder._layer = self
 
 
-class Network(ModuleFactory):
+class Network(_ModuleFactory):
     """Main class for dynamic network building. After initialization, `Layer`s and `Placeholder`s can be added in the
     form of attributes. The input to the network is available as an attribute 'input' and the the user is required to
     define a layer called 'output'. There are multiple supported methods to assemble a layer.
@@ -208,10 +206,10 @@ class Network(ModuleFactory):
 
     def __setattr__(self, key, value):
         super().__setattr__(key, value)
-        if not isinstance(value, LayerInput):
+        if not isinstance(value, _LayerInput):
             return
-        if isinstance(value, InputBase):
-            value = value.apply(ModuleFactory())
+        if isinstance(value, _InputBase):
+            value = value.apply(_ModuleFactory())
         value._registered = True
         if key in self._ph:
             if isinstance(value, Placeholder) or (value.placeholder and value.placeholder is not self._ph[key]):
@@ -234,9 +232,9 @@ class Network(ModuleFactory):
 
     def _calc_input_shape(self, shapes, input_mode):
         if input_mode == 'sum':
-            if not any(shapes):
+            if not _any(shapes):
                 return None
-            shape = any(shapes)
+            shape = _any(shapes)
             for other in shapes:
                 if other and other != shape:
                     raise Exception('Shape mismatch in sum of inputs.')
@@ -251,7 +249,7 @@ class Network(ModuleFactory):
             for shape in shapes[1:]:
                 shape = (1,)*(dims-len(shape))+(shape)
                 if not shape[1:] == test:
-                    return shape_sum(shapes)
+                    return _shape_sum(shapes)
                 first_dim += shape[0]
             return (first_dim,)+test
         elif input_mode == 'list':
@@ -376,14 +374,14 @@ class Network(ModuleFactory):
                 for layer in cycle:
                     module_dict_inner[layer] = self._layers[layer].factory._assemble_module(in_shapes[layer], True)
                 inputs = {layer: input_names[layer] for layer in cycle}
-                module_dict[name] = NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent,
-                                                        init_values, input_modes)
+                module_dict[name] = _NestedNetworkModule(in_shape, cycle, inputs, module_dict_inner, recurent,
+                                                         init_values, input_modes)
             for name in outer_layers:
                 module_dict[name] = self._layers[name].factory._assemble_module(in_shapes[name], False)
             outer_ph_rev = {layer_name: ph_rev[layer_name] for layer_name in
                             set(outer_order).intersection(ph_rev.keys())}
-            return OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
-                                      input_modes)
+            return _OuterNetworkModule(in_shape, outer_order, new_inputs, module_dict, cycles_outputs, outer_ph_rev,
+                                       input_modes)
         else:
             module_dict = _torch.nn.ModuleDict()
             for layer in self._og_order:

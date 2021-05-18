@@ -6,7 +6,7 @@ def flatten_to_int(shape):
         out *= s
     return out
 
-def flatten_shape(shape):
+def _flatten_shape(shape):
     if shape is None:
         return None
     out = 1
@@ -14,12 +14,12 @@ def flatten_shape(shape):
         out *= s
     return (out,)
 
-def shape_sum(shapes):
+def _shape_sum(shapes):
     if None in shapes:
         return None
     return (sum([flatten_to_int(shape) for shape in shapes]),)
 
-def any(iterable):
+def _any(iterable):
     for x in iterable:
         if x:
             return x

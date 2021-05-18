@@ -6,7 +6,7 @@ from math import exp
 
 
 
-class NoResetNeuron(CustomModule):
+class _NoResetNeuron(CustomModule):
     def __init__(self, tau, spike_function):
         super().__init__()
         self.beta = exp(-1 / tau)
@@ -35,7 +35,7 @@ class NoResetNeuron(CustomModule):
         return spikes, new_h
 
 
-class LIFNeuron(NoResetNeuron):
+class _LIFNeuron(_NoResetNeuron):
     def __init__(self, tau, spike_function):
         super().__init__(tau, spike_function)
 
@@ -45,7 +45,7 @@ class LIFNeuron(NoResetNeuron):
         return out, new_h
 
 
-class DiscontinuousNeuron(nn.Module):
+class _DiscontinuousNeuron(nn.Module):
     def __init__(self, spike_function, threshold):
         super().__init__()
         self.spike_fn = spike_function
@@ -55,7 +55,7 @@ class DiscontinuousNeuron(nn.Module):
         return self.spike_fn(x-self.threshold)
 
 
-class CooldownNeuron(NoResetNeuron):
+class _CooldownNeuron(_NoResetNeuron):
     def __init__(self, tau, spike_function):
         super().__init__(tau, spike_function)
 
@@ -75,7 +75,7 @@ class CooldownNeuron(NoResetNeuron):
         return spikes, new_h
 
 
-class AdaptiveNeuron(NoResetNeuron):
+class _AdaptiveNeuron(_NoResetNeuron):
     def __init__(self, tau, spike_function, tau_thr, gamma):
         super().__init__(tau, spike_function)
         self.beta_thr = exp(-1 / tau_thr)

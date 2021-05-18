@@ -1,8 +1,8 @@
-import torch
-from .modules import LIFNeuron, NoResetNeuron, CooldownNeuron, AdaptiveNeuron, DiscontinuousNeuron
-from ..custom._factories import RecurrentFactory
-from ..base import ModuleFactory
-from ..custom._modules import StatelessWrapper
+import torch as _torch
+from ._modules import _LIFNeuron, _NoResetNeuron, _CooldownNeuron, _AdaptiveNeuron, _DiscontinuousNeuron
+from ..custom._factories import _RecurrentFactory
+from ..base import ModuleFactory as _ModuleFactory
+from ..custom._modules import _StatelessWrapper
 
 
 
@@ -14,7 +14,7 @@ def spike_linear(gradient_factor=0.3):
     Args:
         gradient_factor: a multiplicator < 1 to add stability to backpropagation. Default: 0.3
     """
-    class SpikeLinear(torch.autograd.Function):
+    class SpikeLinear(_torch.autograd.Function):
 
         @staticmethod
         def forward(ctx, input):
@@ -24,12 +24,12 @@ def spike_linear(gradient_factor=0.3):
         @staticmethod
         def backward(ctx, grad_output):
             input, = ctx.saved_tensors
-            return grad_output * torch.max(torch.zeros([1], device=input.device), 1 - torch.abs(input)) * gradient_factor
+            return grad_output * _torch.max(_torch.zeros([1], device=input.device), 1 - _torch.abs(input)) * gradient_factor
 
     return SpikeLinear.apply
 
 
-class LIF(RecurrentFactory):
+class LIF(_RecurrentFactory):
     r"""Standard Leaky-Integrate-and-Fire neuron.
 
     Args:
@@ -38,9 +38,9 @@ class LIF(RecurrentFactory):
     """
     def __init__(self, tau: float = 5,
                  spike_function=spike_linear()):
-        super().__init__(LIFNeuron, 'flatten', True, True, tau, spike_function)
+        super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function)
 
-class NoReset(RecurrentFactory):
+class NoReset(_RecurrentFactory):
     r"""LIF neuron without the reset mechanism. Has improved memory capabilities. (See my master's thesis for details)
 
     Args:
@@ -49,9 +49,9 @@ class NoReset(RecurrentFactory):
     """
     def __init__(self, tau: float = 5,
                  spike_function=spike_linear()):
-        super().__init__(NoResetNeuron, 'flatten', True, True, tau, spike_function)
+        super().__init__(_NoResetNeuron, 'flatten', True, True, tau, spike_function)
 
-class Cooldown(RecurrentFactory):
+class Cooldown(_RecurrentFactory):
     r"""NoReset neuron with additional exponential input transformation. Suitable to enable long-term memory.
      (See my master's thesis for details)
 
@@ -61,9 +61,9 @@ class Cooldown(RecurrentFactory):
     """
     def __init__(self, tau: float = 5,
                  spike_function=spike_linear()):
-        super().__init__(LIFNeuron, 'flatten', True, True, tau, spike_function)
+        super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function)
 
-class Adaptive(RecurrentFactory):
+class Adaptive(_RecurrentFactory):
     r"""LIF neuron with adaptive threshold as presented in "Bellec et al., 2018: Long short-term memory and
     learning-to-learn in networks of spiking neurons".
 
@@ -77,9 +77,9 @@ class Adaptive(RecurrentFactory):
                  spike_function=spike_linear(),
                  tau_thr: float = 5,
                  gamma: float = 0.25):
-        super().__init__(LIFNeuron, 'flatten', True, True, tau, spike_function, tau_thr, gamma)
+        super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function, tau_thr, gamma)
 
-class Discontinuous(ModuleFactory):
+class Discontinuous(_ModuleFactory):
     """Discontinuous spiking neuron. Essentially just the spike function without the persistent membrane potential.
     Equivalent to a LIF neuron with \(tau=0\).
 
@@ -88,4 +88,4 @@ class Discontinuous(ModuleFactory):
         self.args = spike_function, threshold
 
     def _assemble_module(self, in_shape, unrolled):
-        return StatelessWrapper(in_shape, in_shape, DiscontinuousNeuron(*self.args))
+        return _StatelessWrapper(in_shape, in_shape, _DiscontinuousNeuron(*self.args))

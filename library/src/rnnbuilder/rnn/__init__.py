@@ -1,11 +1,10 @@
-from ..base import ModuleFactory
-from ..custom._factories import RecurrentFactory
-from .modules import LSTMModule, TempConvPlus2dModule
-import torch
+import torch as _torch
+from ..custom._factories import _RecurrentFactory
+from ._modules import _LSTMModule, _TempConvPlus2dModule
 from torch.nn.modules.utils import _pair
 
 
-class LSTM(RecurrentFactory):
+class LSTM(_RecurrentFactory):
     r"""Applies a multi-layer long short-term memory (LSTM) RNN to an input
     sequence.
 
@@ -51,11 +50,11 @@ class LSTM(RecurrentFactory):
     def __init__(self, hidden_size: int,
                  num_layers: int = 1, bias: bool = True,
                  dropout: float = 0.) -> None:
-        super().__init__(LSTMModule, 'flatten', False, True, hidden_size, num_layers, bias, dropout)
+        super().__init__(_LSTMModule, 'flatten', False, True, hidden_size, num_layers, bias, dropout)
 
 
 
-class TempConvPlus2d(RecurrentFactory):
+class TempConvPlus2d(_RecurrentFactory):
     """A 2d-convolution combined with a convolution over the time dimension.
     Useful for e.g. frame stacking in Q-Learning.
 
@@ -80,19 +79,19 @@ class TempConvPlus2d(RecurrentFactory):
     def __init__(
         self,
         out_channels: int,
-        kernel_size: torch.nn.common_types._size_2_t,
-        time_kernel_size: torch.nn.common_types._size_1_t,
-        stride: torch.nn.common_types._size_2_t = 1,
-        padding: torch.nn.common_types._size_2_t = 0,
-        dilation: torch.nn.common_types._size_2_t = 1,
-        time_stride: torch.nn.common_types._size_1_t = 1,
-        time_padding: torch.nn.common_types._size_1_t = 0,
-        time_dilation: torch.nn.common_types._size_1_t = 1,
+        kernel_size: _torch.nn.common_types._size_2_t,
+        time_kernel_size: _torch.nn.common_types._size_1_t,
+        stride: _torch.nn.common_types._size_2_t = 1,
+        padding: _torch.nn.common_types._size_2_t = 0,
+        dilation: _torch.nn.common_types._size_2_t = 1,
+        time_stride: _torch.nn.common_types._size_1_t = 1,
+        time_padding: _torch.nn.common_types._size_1_t = 0,
+        time_dilation: _torch.nn.common_types._size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
         padding_mode: str = 'zeros'
     ):
-        super().__init__(TempConvPlus2dModule, False, False, False, out_channels=out_channels,
+        super().__init__(_TempConvPlus2dModule, False, False, False, out_channels=out_channels,
                          kernel_size=(time_kernel_size,)+tuple(_pair(kernel_size)),
                          stride=(time_stride,) + tuple(_pair(stride)),
                          padding=(time_padding,) + tuple(_pair(padding)),
