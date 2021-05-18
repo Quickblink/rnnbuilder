@@ -127,7 +127,7 @@ class OuterNetworkModule(ModuleBase):
                     else:
                         x = inputs
                 else:
-                    x = results[next(iter(self.inputs[layer_name]))]
+                    x = results[self.inputs[layer_name][0]]
                 results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
                 if layer_name in self.placeholders_rev:
                     ph = self.placeholders_rev[layer_name]
@@ -169,7 +169,7 @@ class InnerNetworkModule(ModuleBase):
                 else:
                     x = inputs
             else:
-                x = results[next(iter(self.inputs[layer_name]))]
+                x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results['output'], (new_state, new_recurrent_outputs)
@@ -200,7 +200,7 @@ class NestedNetworkModule(InnerNetworkModule):
                 else:
                     x = inputs
             else:
-                x = results[next(iter(self.inputs[layer_name]))]
+                x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
         new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
         return results, (new_state, new_recurrent_outputs)

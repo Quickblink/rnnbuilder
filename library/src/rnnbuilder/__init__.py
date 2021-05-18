@@ -344,7 +344,7 @@ class Network(ModuleFactory):
                     computed_order.append(node)
             nodes.difference_update(done)
 
-        req_remain = set.union(*([input_names[layer_name] for layer_name in remaining] + [{'output'}]))
+        req_remain = set.union(*([set(input_names[layer_name]) for layer_name in remaining] + [{'output'}]))
         cycle_outputs = {c_name: req_remain.intersection(cycle) for c_name, cycle in full_cycles_dict.items()}
 
         return computed_order, remaining, cycles_dict, new_inputs, cycle_outputs
@@ -359,7 +359,7 @@ class Network(ModuleFactory):
         input_modes = {layer_name: layer.mode for layer_name, layer in self._layers.items()}
         out_shapes, in_shapes = self._compute_shapes(in_shape, input_modes)
         ph_lookup = {ph_name: self._reverse_laph[ph._get_layer()] for ph_name, ph in self._ph.items()}
-        input_names = {layer_name: {self._reverse_laph[inp_lay] for inp_lay in layer._inputs} for layer_name, layer in
+        input_names = {layer_name: [self._reverse_laph[inp_lay] for inp_lay in layer._inputs] for layer_name, layer in
                        self._layers.items()}
         input_no_ph = {layer_name: {(ph_lookup[inp] if inp in ph_lookup else inp) for inp in inputs} for
                        layer_name, inputs in input_names.items()}

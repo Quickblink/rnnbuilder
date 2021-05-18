@@ -2,6 +2,7 @@ import torch
 import rnnbuilder as rb
 from rnnbuilder.nn import ReLU, Conv2d, Linear, Tanh, Sigmoid
 
+torch.manual_seed(0)
 
 from functools import reduce
 import operator
@@ -24,7 +25,7 @@ inp_shape = (100,)
 example = torch.rand((seq,batch)+inp_shape)
 
 
-hidden_size = 32
+hidden_size = 64
 n = rb.Network()
 
 n.output = rb.Placeholder()
@@ -54,7 +55,7 @@ with torch.no_grad():
     model.inner.layers.c0.layers.i.mlist[0].inner.weight.data,\
     model.inner.layers.c0.layers.f.mlist[0].inner.weight.data,\
     model.inner.layers.c0.layers.g.mlist[0].inner.weight.data,\
-    model.inner.layers.c0.layers.o.mlist[0].inner.weight.data = torch.cat((ref_model.weight_hh_l0, ref_model.weight_ih_l0), dim=-1).chunk(4)
+    model.inner.layers.c0.layers.o.mlist[0].inner.weight.data = torch.cat((ref_model.weight_ih_l0, ref_model.weight_hh_l0), dim=-1).chunk(4)
 
     model.inner.layers.c0.layers.i.mlist[0].inner.bias.data,\
     model.inner.layers.c0.layers.f.mlist[0].inner.bias.data,\
@@ -62,17 +63,25 @@ with torch.no_grad():
     model.inner.layers.c0.layers.o.mlist[0].inner.bias.data = (ref_model.bias_ih_l0 + ref_model.bias_hh_l0).chunk(4)
 
 
-out, _ = model(example)
+out, state1 = model(example)
 
 
-out_ref, _ = ref_model(example)
+out_ref, state2 = ref_model(example)
 
-if not torch.isclose(out, out_ref, atol=1e-7).all():
-    out, _ = model(example)
+#c1 = state1[0]['c0'][1]['c_ph']
+#c2 = state2[1]
 
-print((out-out_ref).max(), (out-out_ref).var().sqrt())
-print((out-out_ref))
-print(out)
+
+#if not torch.isclose(out, out_ref, atol=1e-7).all():
+#    x = 1
+#ih = torch.ones(104)
+#ih[100:] = 0
+#test = torch.sigmoid(model.inner.layers.c0.layers.i.mlist[0].inner(ih))
+#out, _ = model(example)
+
+#print((out-out_ref).max(), (out-out_ref).var().sqrt())
+#print((out-out_ref))
+#print(out)
 assert torch.isclose(out, out_ref, atol=1e-7).all()
 
 print('LSTM test finished.')

@@ -1,3 +1,4 @@
+python3 run_tests.py
 cd library
 python3 -m build
 python3 -m twine upload --repository testpypi dist/*

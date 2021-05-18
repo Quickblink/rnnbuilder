@@ -2,6 +2,7 @@ import torch
 import rnnbuilder as rb
 from rnnbuilder.nn import ReLU, Conv2d, Linear, Tanh, Sigmoid
 
+torch.manual_seed(0)
 
 from functools import reduce
 import operator
@@ -15,7 +16,7 @@ class HadamardModule(rb.custom.CustomModule):
     def forward(self, inputs, _):
         return prod(inputs), ()
 
-Hadamard = custom.register_recurrent(module_class=HadamardModule, flatten_input=False, single_step=False, unroll_full_state=False)
+Hadamard = rb.custom.register_recurrent(module_class=HadamardModule, flatten_input=False, single_step=False, unroll_full_state=False)
 
 
 seq = 8
@@ -24,7 +25,7 @@ inp_shape = (100,)
 example = torch.rand((seq,batch)+inp_shape)
 
 
-hidden_size = 32
+hidden_size = 64
 n = rb.Network()
 
 n.output = rb.Placeholder()

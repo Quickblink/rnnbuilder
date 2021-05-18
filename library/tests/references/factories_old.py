@@ -1,5 +1,5 @@
 import torch
-from networks_old import SequenceWrapperFull, ConvWrapper3d, ConvWrapper2, flatten, NetworkModule, LinearModule,\
+from .networks_old import SequenceWrapperFull, ConvWrapper3d, ConvWrapper2, flatten, NetworkModule, LinearModule,\
     LIFNeuron, DiscontinuousNeuron, ConvModule, FlattenerModule, ReLuWrapper, LSTMWrapperOneStep, OutputNeuron
 
 

@@ -1,10 +1,8 @@
 import torch
 import torch.nn as nn
-import copy
 import torch.nn.functional as F
-from torch.distributions.uniform import Uniform
-from threading import Condition
 from library.src.rnnbuilder.base._utils import StateContainerNew
+import math
 
 class BellecSpike(torch.autograd.Function):
 
@@ -415,7 +413,7 @@ class MeanModule(BaseNeuron):
 class NoResetNeuron(BaseNeuron):
     def __init__(self, size, params):
         super().__init__(size, None)
-        self.beta = np.exp(-1 / params['TAU'])
+        self.beta = math.exp(-1 / params['TAU'])
         if params['1-beta'] == 'improved':
             self.factor = (1 - self.beta ** 2) ** (0.5)
         elif params['1-beta']:
@@ -481,7 +479,7 @@ class LIFNeuron(NoResetNeuron):
 class AdaptiveNeuron(NoResetNeuron):
     def __init__(self, size, params):
         super().__init__(size, params)
-        self.beta_thr = np.exp(-1 / params['TAU_THR'])
+        self.beta_thr = math.exp(-1 / params['TAU_THR'])
         self.gamma = params['GAMMA']
         self.est_rate = 0.06
 
