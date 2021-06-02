@@ -38,8 +38,7 @@ class CustomModule(_torch.nn.Module, _ABC):
         individual `Placeholder`s.
 
         Args:
-            full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
-                always be 1.
+            full_shape: shape of the output in the format (batch, data0, data1, ...).
         """
         return _torch.zeros(full_shape, device=self.device)
 

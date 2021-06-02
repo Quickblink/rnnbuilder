@@ -25,7 +25,8 @@ class _NonRecurrentFactory(ModuleFactory):
             if not self._buffered_module or in_shape != self._buffered_shape:
                 self._buffered_module = self._make_module(in_shape, *self._args, **self._kwargs)
                 self._buffered_shape = in_shape
-            return self._buffered_module(torch.zeros((1,)+in_shape)).shape[1:] #TODO: in_shape should be flattened if set for auto
+            in_shape = _flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
+            return self._buffered_module(torch.zeros((1,)+in_shape)).shape[1:]
 
 
 
@@ -47,7 +48,7 @@ class _RecurrentFactory(ModuleFactory):
         self._kwargs = kwargs
         self._buffered_module = None
         self._buffered_shape = None
-        self._test_shape = (1,) if single_step else (10,1) # TODO: revert to 1
+        self._test_shape = (1,) if single_step else (10,1)
 
     def _make_module(self, in_shape, *args, **kwargs):
         module = self._module_class(*args, **kwargs)
@@ -63,6 +64,7 @@ class _RecurrentFactory(ModuleFactory):
                 self._buffered_module.enter_in_shape(in_shape)
         out_shape = self._buffered_module.get_out_shape(in_shape)
         if all(in_shape) and not out_shape:
+            in_shape = _flatten_shape(in_shape) if self._prepare_input == 'flatten' else in_shape
             return self._buffered_module(torch.zeros(self._test_shape + in_shape),
                                          self._buffered_module.get_initial_state(1))[0].shape[2 - self._single_step:]
         return out_shape
@@ -74,4 +76,4 @@ class _RecurrentFactory(ModuleFactory):
         out_shape = self._shape_change(in_shape)
         module = self._buffered_module or self._make_module(in_shape, *self._args, **self._kwargs)
         self._buffered_module = None
-        return RecurrentWrapper(in_shape, out_shape, module, self._single_step, self._unroll_full_state)
+        return RecurrentWrapper(in_shape, out_shape, module, self._single_step, self._unroll_full_state, unrolled)

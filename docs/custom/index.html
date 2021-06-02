@@ -68,8 +68,7 @@ class CustomModule(_torch.nn.Module, _ABC):
         individual `Placeholder`s.
 
         Args:
-            full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
-                always be 1.
+            full_shape: shape of the output in the format (batch, data0, data1, ...).
         &#34;&#34;&#34;
         return _torch.zeros(full_shape, device=self.device)
 
@@ -107,19 +106,19 @@ class _NonRecurrentGenerator:
 def register_non_recurrent(*, module_class: Type[_torch.nn.Module],
                            flatten_input: bool,
                            shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
+    &#34;&#34;&#34;Register a (non-recurrent) `torch.nn.Module` to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from `torch.nn.Module`. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
             (after the optional flatten) and output shapes of the module are identical otherwise True
     &#34;&#34;&#34;
     initializer = (lambda in_shape, *args, **kwargs: module_class(*args, **kwargs))\
-        if type(module_class) is type else module_class #TODO: remove initializer
+        if type(module_class) is type else module_class
     return _NonRecurrentGenerator(initializer, &#39;flatten&#39; if flatten_input else &#39;keep&#39;,
                                   &#39;auto&#39; if shape_change else &#39;none&#39;)
 
@@ -146,7 +145,7 @@ def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
         single_step: If True, for each time step the forward method of the module will be invoked with a tensor of
             format (batch, data_shape). If False, it will be only invoked once with a tensor of format
             (time, batch, data_shape).
-        unroll_full_state: (_Optional) If True and the state for every time step is required (full_state mode), the
+        unroll_full_state: (Optional) If True and the state for every time step is required (full_state mode), the
             module will be invoked for each time step even if single_step=False. If False, the module has to check for
             self._full_state and return a sequence of states appropriately
     &#34;&#34;&#34;
@@ -166,13 +165,13 @@ def register_recurrent(*, module_class: Type[CustomModule], flatten_input: bool,
 <span>def <span class="ident">register_non_recurrent</span></span>(<span>*, module_class: Type[torch.nn.modules.module.Module], flatten_input: bool, shape_change: bool)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
+<div class="desc"><p>Register a (non-recurrent) <code>torch.nn.Module</code> to retrieve a factory class. The factory class will initialize with
 the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
 <code><a title="rnnbuilder.custom.CustomModule" href="#rnnbuilder.custom.CustomModule">CustomModule</a></code> and use <code><a title="rnnbuilder.custom.register_recurrent" href="#rnnbuilder.custom.register_recurrent">register_recurrent()</a></code> instead.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>module_class</code></strong></dt>
-<dd>a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
+<dd>a class derived from <code>torch.nn.Module</code>. The forward method needs to conform to a fixed signature.
 It must accept a single input tensor of format (batch, data0, data1, &hellip;) and return a single output tensor.</dd>
 <dt><strong><code>flatten_input</code></strong></dt>
 <dd>If True, the input is flattened to shape (batch, data0<em>data1</em>&hellip;) before given to the module.</dd>
@@ -187,19 +186,19 @@ It must accept a single input tensor of format (batch, data0, data1, &hellip;) a
 <pre><code class="python">def register_non_recurrent(*, module_class: Type[_torch.nn.Module],
                            flatten_input: bool,
                            shape_change: bool):
-    &#34;&#34;&#34;Register a (non-recurrent) _torch._torch.nn.Module to retrieve a factory class. The factory class will initialize with
+    &#34;&#34;&#34;Register a (non-recurrent) `torch.nn.Module` to retrieve a factory class. The factory class will initialize with
     the same parameters as the registered Module. If this interface is too restrictive, wrap the Module in a
     `CustomModule` and use `register_recurrent` instead.
 
     Args:
-        module_class: a class derived from _torch._torch.nn.Module. The forward method needs to conform to a fixed signature.
+        module_class: a class derived from `torch.nn.Module`. The forward method needs to conform to a fixed signature.
             It must accept a single input tensor of format (batch, data0, data1, ...) and return a single output tensor.
         flatten_input: If True, the input is flattened to shape (batch, data0*data1*...) before given to the module.
         shape_change: Indicate whether the module changes the shape of the tensor going through, i.e. put False if input
             (after the optional flatten) and output shapes of the module are identical otherwise True
     &#34;&#34;&#34;
     initializer = (lambda in_shape, *args, **kwargs: module_class(*args, **kwargs))\
-        if type(module_class) is type else module_class #TODO: remove initializer
+        if type(module_class) is type else module_class
     return _NonRecurrentGenerator(initializer, &#39;flatten&#39; if flatten_input else &#39;keep&#39;,
                                   &#39;auto&#39; if shape_change else &#39;none&#39;)</code></pre>
 </details>
@@ -221,7 +220,7 @@ with the same parameters as the registered <code><a title="rnnbuilder.custom.Cus
 format (batch, data_shape). If False, it will be only invoked once with a tensor of format
 (time, batch, data_shape).</dd>
 <dt><strong><code>unroll_full_state</code></strong></dt>
-<dd>(_Optional) If True and the state for every time step is required (full_state mode), the
+<dd>(Optional) If True and the state for every time step is required (full_state mode), the
 module will be invoked for each time step even if single_step=False. If False, the module has to check for
 self._full_state and return a sequence of states appropriately</dd>
 </dl></div>
@@ -240,7 +239,7 @@ self._full_state and return a sequence of states appropriately</dd>
         single_step: If True, for each time step the forward method of the module will be invoked with a tensor of
             format (batch, data_shape). If False, it will be only invoked once with a tensor of format
             (time, batch, data_shape).
-        unroll_full_state: (_Optional) If True and the state for every time step is required (full_state mode), the
+        unroll_full_state: (Optional) If True and the state for every time step is required (full_state mode), the
             module will be invoked for each time step even if single_step=False. If False, the module has to check for
             self._full_state and return a sequence of states appropriately
     &#34;&#34;&#34;
@@ -297,8 +296,7 @@ registered CustomModule.</p>
         individual `Placeholder`s.
 
         Args:
-            full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
-                always be 1.
+            full_shape: shape of the output in the format (batch, data0, data1, ...).
         &#34;&#34;&#34;
         return _torch.zeros(full_shape, device=self.device)
 
@@ -403,8 +401,7 @@ individual <code>Placeholder</code>s.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>full_shape</code></strong></dt>
-<dd>shape of the output in the format (time, batch, data0, data1, &hellip;). The time dimension will
-always be 1.</dd>
+<dd>shape of the output in the format (batch, data0, data1, &hellip;).</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -415,8 +412,7 @@ always be 1.</dd>
     individual `Placeholder`s.
 
     Args:
-        full_shape: shape of the output in the format (time, batch, data0, data1, ...). The time dimension will
-            always be 1.
+        full_shape: shape of the output in the format (batch, data0, data1, ...).
     &#34;&#34;&#34;
     return _torch.zeros(full_shape, device=self.device)</code></pre>
 </details>

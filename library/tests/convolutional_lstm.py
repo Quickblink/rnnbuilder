@@ -5,20 +5,18 @@ from rnnbuilder import snn, rnn, nn
 seq = 8
 batch = 32
 inp_shape = (1,92,76)
-example = torch.rand((seq,batch)+inp_shape)
+example = torch.rand((seq,batch)+inp_shape, requires_grad=True)
 FRAME_STACK = 4
 N_OUT = 3
 
-conv_neuron = snn.Discontinuous()
+conv_neuron = nn.ReLU()
 
 conv_stack = rb.Sequential(
     rnn.TempConvPlus2d(out_channels=32, kernel_size=8, stride=4, time_kernel_size=FRAME_STACK),conv_neuron,
     nn.Conv2d(out_channels=64, kernel_size=4, stride=2), conv_neuron,
     nn.Conv2d(out_channels=64, kernel_size=3, stride=1), conv_neuron)
 
-ll = rb.Network()
-ll.output = rb.Placeholder()
-ll.output = ll.input.stack(ll.output).apply(nn.Linear(512), snn.LIF())
+ll = rb.rnn.LSTM(512)
 
 model = rb.Sequential(conv_stack, ll, nn.Linear(N_OUT)).make_model(inp_shape)
 
@@ -37,12 +35,12 @@ disc_config = {
     'THRESHOLD' : 1
 }
 
-CONV_NEURON = Disc(disc_config) # Seq(LIF(lif_config)) # ReLU()
+CONV_NEURON = ReLU() # Seq(LIF(lif_config)) # ReLU()
 ll_rsnn = Seq(Network(ExecPath(['input', 'output'], [Linear(512), LIF(lif_config)], 'output')))
 ll_snn = Network(ExecPath(['input'], [Linear(512), Seq(LIF(lif_config))], 'output'))
 ll_lstm = LSTM(512)
 ll_ffann = Network(ExecPath(['input'], [Linear(512), ReLU()], 'output'))
-LAST_LAYER = ll_rsnn
+LAST_LAYER = ll_lstm
 conv = ConvPath([
     Conv3({'out_channels': 32, 'kernel_size': 8, 'stride': 4, 'frame_stack': FRAME_STACK}, CONV_NEURON),
     Conv2({'out_channels': 64, 'kernel_size': 4, 'stride': 2}, CONV_NEURON),
@@ -105,12 +103,12 @@ assert len(l1) == len(l2)
 for i in range(len(l1)):
     assert torch.isclose(l2[i].rename(None), l1[i]).all()
 
-#out1_ref.sum().backward()
-#grad = example.grad.clone()
-#example.grad = None
-#out3_ref.sum().backward()
-#grad_ref = example.grad.clone()
+out3.sum().backward()
+grad = example.grad.clone()
+example.grad = None
+out3_ref.sum().backward()
+grad_ref = example.grad.clone()
 
-#assert torch.isclose(grad, grad_ref).all()
+assert torch.isclose(grad, grad_ref).all()
 
-print('SNN test finished.')
+print('Conv lstm test finished.')

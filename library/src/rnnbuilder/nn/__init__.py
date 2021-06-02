@@ -1,4 +1,4 @@
-""" This module provides factories for standard _torch modules. Documentation and signatures are directly copied from
+""" This module provides factories for standard torch modules. Documentation and signatures are directly copied from
 PyTorch and copyright applies accordingly.
 """
 import torch as _torch

@@ -65,8 +65,8 @@ class _CooldownNeuron(_NoResetNeuron):
         self.register_buffer('sgn', torch.ones([self.in_size], requires_grad=False))
         self.sgn[(self.in_size//2):] *= -1
 
-    def get_initial_output(self, batch_size):
-        return (self.sgn < 0).float().expand([batch_size, self.in_size])
+    def get_initial_output(self, full_shape):
+        return (self.sgn < 0).float().expand(full_shape)
 
     def forward(self, x, h):
         new_h = {}

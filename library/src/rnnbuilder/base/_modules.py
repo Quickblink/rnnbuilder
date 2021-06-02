@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 
 from ._utils import StateContainerNew
 
@@ -16,44 +15,7 @@ class _ModuleBase(torch.nn.Module):
         return x, h
 
     def get_initial_output(self, batch_size):
-        return torch.zeros((1, batch_size) + self.out_shape, device=self.device)
-
-
-
-
-
-class _OuterModule(torch.nn.Module):
-    def __init__(self, inner):
-        super().__init__()
-        self.inner = inner
-        self.register_buffer('_device_zero', torch.zeros(1))
-        self.to('cpu')
-        self.configure(full_state=False)
-
-    # input mode = ['single, batch, sequence']
-    def configure(self, full_state=None, input_mode=None):
-        for module in self.modules():
-            module._full_state = full_state
-
-    def _apply(self, fn):
-        super()._apply(fn)
-        for module in self.modules():
-            module.device = self._device_zero.device
-
-
-    def forward(self, x, h=None):
-        h = h or self.inner.get_initial_state(x.shape[1])
-        return self.inner(x, h)
-        # input modes, outputs modes?
-        # get initial state
-
-    def forward_log(self, x, h):
-        pass
-        # only single step _inputs?
-
-    def get_initial_state(self, batch_size):
-        return self.inner.get_initial_state(batch_size)
-
+        return torch.zeros((batch_size,) + self.out_shape, device=self.device)
 
 
 class _SequentialModule(_ModuleBase):
@@ -131,8 +93,8 @@ class _OuterNetworkModule(_ModuleBase):
                 results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
                 if layer_name in self.placeholders_rev:
                     ph = self.placeholders_rev[layer_name]
-                    new_recurrent_outputs[ph] = results[layer_name] if self._full_state else results[layer_name][-1:]
-                    results[ph] = torch.cat((recurrent_outputs[ph], results[layer_name][:-1]), dim=0)
+                    new_recurrent_outputs[ph] = results[layer_name] if self._full_state else results[layer_name][-1]
+                    results[ph] = torch.cat((recurrent_outputs[ph].unsqueeze(0), results[layer_name][:-1]), dim=0)
         return results['output'], (new_state, new_recurrent_outputs)
 
     def get_initial_state(self, batch_size):
@@ -158,7 +120,7 @@ class _InnerNetworkModule(_ModuleBase):
     def forward(self, inp, hidden_state):
         state, recurrent_outputs = hidden_state
         new_state = {}
-        results = {'input': inp, **recurrent_outputs}
+        results = {'input': inp, **{k: v.unsqueeze(0) for k, v in recurrent_outputs.items()}}
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
@@ -171,7 +133,7 @@ class _InnerNetworkModule(_ModuleBase):
             else:
                 x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
-        new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
+        new_recurrent_outputs = {ph_name: results[layer_name].squeeze(0) for ph_name, layer_name in self.recurrent_layers.items()}
         return results['output'], (new_state, new_recurrent_outputs)
 
     def get_initial_state(self, batch_size):
@@ -189,7 +151,7 @@ class _NestedNetworkModule(_InnerNetworkModule):
     def forward(self, results, hidden_state):
         state, recurrent_outputs = hidden_state
         new_state = {}
-        results = {**recurrent_outputs, **results}
+        results = {**{k: v.unsqueeze(0) for k, v in recurrent_outputs.items()}, **results}
         for layer_name in self.order:
             if len(self.inputs[layer_name]) > 1:
                 inputs = [results[p].reshape(results[p].shape[:2]+(-1,)) for p in self.inputs[layer_name]]
@@ -202,5 +164,5 @@ class _NestedNetworkModule(_InnerNetworkModule):
             else:
                 x = results[self.inputs[layer_name][0]]
             results[layer_name], new_state[layer_name] = self.layers[layer_name](x, state[layer_name])
-        new_recurrent_outputs = {ph_name: results[layer_name] for ph_name, layer_name in self.recurrent_layers.items()}
+        new_recurrent_outputs = {ph_name: results[layer_name].squeeze(0) for ph_name, layer_name in self.recurrent_layers.items()}
         return results, (new_state, new_recurrent_outputs)

@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../library/src')
 import rnnbuilder as rb
 import torch
 from rnnbuilder import snn, rnn, nn
@@ -21,3 +23,7 @@ ll.output = rb.Placeholder()
 ll.output = ll.input.stack(ll.output).apply(nn.Linear(512), snn.LIF())
 
 model = rb.Sequential(conv_stack, ll, nn.Linear(N_OUT)).make_model(inp_shape)
+
+out, state = model(example)
+
+out.sum().backward()

@@ -29,20 +29,20 @@
 specification for a network or sub-network and can be invoked to yield independent models from that specification.</p>
 <p>Classic PyTorch code:</p>
 <pre><code>input_shape = (10,)
-linear = _torch._torch.nn.Linear(in_features=10,out_features=10)
-model = _torch._torch.nn.Sequential(linear, linear)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
 
-input = _torch.rand(input_shape)
+input = torch.rand(input_shape)
 output = model(input)
 </code></pre>
 <p>The above code applies a matrix multiplication with a <em>single weight matrix</em> twice to the input.</p>
 <p>rnnbuilder <strong>(not equivalent)</strong>:</p>
 <pre><code>input_shape = (7,)
-linear = rnnbuilder._torch.nn.Linear(out_features=10)
+linear = rnnbuilder.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
-input = _torch.rand(input_shape)
+input = torch.rand(input_shape)
 output = model(input)
 </code></pre>
 <p>This code does not reuse any layers. Instead it will initialize a model with two separate linear layers, both with an
@@ -55,7 +55,7 @@ without the need to precalculate the size of inputs (more useful for convolution
 to gain an overview of what is possible.</p>
 <h3 id="example-lstm">Example: LSTM</h3>
 <p><img alt="LSTM computational graph" src="img/rnnbuilder_graph_3.svg">
-The above computational graph shows a typical 1-layer LSTM identical in function to <code>_torch.nn.LSTM</code>. The blue boxes show
+The above computational graph shows a typical 1-layer LSTM identical in function to <code>torch.nn.LSTM</code>. The blue boxes show
 the <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code>s of the <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code>, the green circles present the operations associated to these layers and the red boxes
 represent the values of the corresponding layers at the previous time step. They are represented in code by
 <code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code>s. Here is the whole network built using rnnbuilder:</p>
@@ -79,9 +79,9 @@ n.tan_c = n.c.apply(Tanh())
 n.output = n.o.append(n.tan_c).apply(Hadamard())
 </code></pre>
 <h2 id="modules">Modules</h2>
-<p>rnnbuilder provides a number of factories for standard _torch modules under <code><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code>. These have identical
-signatures to the _torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
-and SNN modules are provided under the corresponding submodules.</p>
+<p>rnnbuilder provides a number of factories for standard torch modules under <code><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code>. These have identical
+signatures to the <code>torch.nn</code> modules (without in_features or in_channels). Additionally, some specific factories for RNN
+and SNN modules are provided under <code><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code> and <code><a title="rnnbuilder.snn" href="snn/index.html">rnnbuilder.snn</a></code>.</p>
 <p>If you need to use any other modules, <code><a title="rnnbuilder.custom" href="custom/index.html">rnnbuilder.custom</a></code> provides a base class and registration methods to retrieve
 corresponding factory classes.</p>
 <details class="source">
@@ -98,10 +98,10 @@ specification for a network or sub-network and can be invoked to yield independe
 Classic PyTorch code:
 ```
 input_shape = (10,)
-linear = _torch._torch.nn.Linear(in_features=10,out_features=10)
-model = _torch._torch.nn.Sequential(linear, linear)
+linear = torch.nn.Linear(in_features=10,out_features=10)
+model = torch.nn.Sequential(linear, linear)
 
-input = _torch.rand(input_shape)
+input = torch.rand(input_shape)
 output = model(input)
 ```
 The above code applies a matrix multiplication with a *single weight matrix* twice to the input.
@@ -109,11 +109,11 @@ The above code applies a matrix multiplication with a *single weight matrix* twi
 rnnbuilder **(not equivalent)**:
 ```
 input_shape = (7,)
-linear = rnnbuilder._torch.nn.Linear(out_features=10)
+linear = rnnbuilder.nn.Linear(out_features=10)
 sequential = rnnbuilder.Sequential(linear, linear)
 model = sequential.make_model(input_shape)
 
-input = _torch.rand(input_shape)
+input = torch.rand(input_shape)
 output = model(input)
 ```
 This code does not reuse any layers. Instead it will initialize a model with two separate linear layers, both with an
@@ -129,7 +129,7 @@ to gain an overview of what is possible.
 
 ###Example: LSTM
 ![LSTM computational graph](img/rnnbuilder_graph_3.svg)
-The above computational graph shows a typical 1-layer LSTM identical in function to `_torch.nn.LSTM`. The blue boxes show
+The above computational graph shows a typical 1-layer LSTM identical in function to `torch.nn.LSTM`. The blue boxes show
 the `Layer`s of the `Network`, the green circles present the operations associated to these layers and the red boxes
 represent the values of the corresponding layers at the previous time step. They are represented in code by
 `Placeholder`s. Here is the whole network built using rnnbuilder:
@@ -156,9 +156,9 @@ n.output = n.o.append(n.tan_c).apply(Hadamard())
 ```
 
 ##Modules
-rnnbuilder provides a number of factories for standard _torch modules under `rnnbuilder.nn`. These have identical
-signatures to the _torch.nn modules (without in_features or in_channels). Additionally, some specific factories for RNN
-and SNN modules are provided under the corresponding submodules.
+rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
+signatures to the `torch.nn` modules (without in_features or in_channels). Additionally, some specific factories for RNN
+and SNN modules are provided under `rnnbuilder.rnn` and `rnnbuilder.snn`.
 
 If you need to use any other modules, `rnnbuilder.custom` provides a base class and registration methods to retrieve
 corresponding factory classes.
@@ -177,7 +177,7 @@ from . import custom, rnn, snn, nn
 
 
 class Sequential(_ModuleFactory):
-    &#34;&#34;&#34;Equivalent to `_torch._torch.nn.Sequential`. Accepts multiple `_ModuleFactory` or an iterable of `_ModuleFactory`s.
+    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
 
     def __init__(self, *module_factory: _Union[_ModuleFactory, _Iterable[_ModuleFactory]]):
@@ -202,7 +202,7 @@ class Sequential(_ModuleFactory):
 
 
 class Stack(_InputBase):
-    &#34;&#34;&#34;Stacks inputs along the first data dimension using `_torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    &#34;&#34;&#34;Stacks inputs along the first data dimension using `torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
     pass
 
 
@@ -221,7 +221,7 @@ class Placeholder(_LayerBase):
     optional initialization parameter.
 
     Args:
-        initial_value: _Optional; function that returns the initial output value used for the first step /
+        initial_value: (optional) function that returns the initial output value used for the first step /
             initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`&#39;s class.&#34;&#34;&#34;
     _inputs = set()
 
@@ -243,7 +243,7 @@ class Layer(_LayerBase):
     Args:
         input: The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
             network), n.some_layer, n.some_placeholder or an input aggregation (`Sum` or `Stack`).
-        factory: Either a single `_ModuleFactory` or an iterable of `_ModuleFactory`s that is automatically wrapped by a
+        factory: Either a single `ModuleFactory` or an iterable of `ModuleFactory`s that is automatically wrapped by a
             `Sequential`.
         placeholder: (optional) A `Placeholder` to link to this layer. This can be useful if the placeholder is still
             required after layer definition (prohibiting overwriting the attribute as described above)
@@ -281,12 +281,12 @@ class Network(_ModuleFactory):
         ...n.output = n.second_layer.apply(some_factory3)
         ```
 
-    The assembled object is a `_ModuleFactory` that can be used like any other. It automatically detects cycles and
+    The assembled object is a `ModuleFactory` that can be used like any other. It automatically detects cycles and
     unrolls execution where necessary.
     &#34;&#34;&#34;
 
     def __init__(self):
-        super().__init__()  # TODO: check setattr calls in this
+        super().__init__()
         self._layers = {}
         self._ph = {}
         self._reverse_laph = {}
@@ -320,7 +320,7 @@ class Network(_ModuleFactory):
             self._ph[key] = value
         self._reverse_laph[value] = key
 
-    def _calc_input_shape(self, shapes, input_mode):
+    def _calc_input_shape(self, shapes, input_mode): #TODO: make only list and move rest in operations
         if input_mode == &#39;sum&#39;:
             if not _any(shapes):
                 return None
@@ -494,7 +494,7 @@ class Network(_ModuleFactory):
 </dd>
 <dt><code class="name"><a title="rnnbuilder.nn" href="nn/index.html">rnnbuilder.nn</a></code></dt>
 <dd>
-<div class="desc"><p>This module provides factories for standard _torch modules. Documentation and signatures are directly copied from
+<div class="desc"><p>This module provides factories for standard torch modules. Documentation and signatures are directly copied from
 PyTorch and copyright applies …</p></div>
 </dd>
 <dt><code class="name"><a title="rnnbuilder.rnn" href="rnn/index.html">rnnbuilder.rnn</a></code></dt>
@@ -527,7 +527,7 @@ PyTorch and copyright applies …</p></div>
 <dd>The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
 network), n.some_layer, n.some_placeholder or an input aggregation (<code><a title="rnnbuilder.Sum" href="#rnnbuilder.Sum">Sum</a></code> or <code><a title="rnnbuilder.Stack" href="#rnnbuilder.Stack">Stack</a></code>).</dd>
 <dt><strong><code>factory</code></strong></dt>
-<dd>Either a single <code>_ModuleFactory</code> or an iterable of <code>_ModuleFactory</code>s that is automatically wrapped by a
+<dd>Either a single <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s that is automatically wrapped by a
 <code><a title="rnnbuilder.Sequential" href="#rnnbuilder.Sequential">Sequential</a></code>.</dd>
 <dt><strong><code>placeholder</code></strong></dt>
 <dd>(optional) A <code><a title="rnnbuilder.Placeholder" href="#rnnbuilder.Placeholder">Placeholder</a></code> to link to this layer. This can be useful if the placeholder is still
@@ -544,7 +544,7 @@ required after layer definition (prohibiting overwriting the attribute as descri
     Args:
         input: The input to the module(s) in this layer. Given a network n, can be one of n.input (the input to the
             network), n.some_layer, n.some_placeholder or an input aggregation (`Sum` or `Stack`).
-        factory: Either a single `_ModuleFactory` or an iterable of `_ModuleFactory`s that is automatically wrapped by a
+        factory: Either a single `ModuleFactory` or an iterable of `ModuleFactory`s that is automatically wrapped by a
             `Sequential`.
         placeholder: (optional) A `Placeholder` to link to this layer. This can be useful if the placeholder is still
             required after layer definition (prohibiting overwriting the attribute as described above)
@@ -626,7 +626,7 @@ define a layer called 'output'. There are multiple supported methods to assemble
 ...n.second_layer = n.first_layer_prev.stack(n.input).apply(some_factory2)
 ...n.output = n.second_layer.apply(some_factory3)
 </code></pre>
-<p>The assembled object is a <code>_ModuleFactory</code> that can be used like any other. It automatically detects cycles and
+<p>The assembled object is a <code>ModuleFactory</code> that can be used like any other. It automatically detects cycles and
 unrolls execution where necessary.</p></div>
 <details class="source">
 <summary>
@@ -646,12 +646,12 @@ unrolls execution where necessary.</p></div>
         ...n.output = n.second_layer.apply(some_factory3)
         ```
 
-    The assembled object is a `_ModuleFactory` that can be used like any other. It automatically detects cycles and
+    The assembled object is a `ModuleFactory` that can be used like any other. It automatically detects cycles and
     unrolls execution where necessary.
     &#34;&#34;&#34;
 
     def __init__(self):
-        super().__init__()  # TODO: check setattr calls in this
+        super().__init__()
         self._layers = {}
         self._ph = {}
         self._reverse_laph = {}
@@ -685,7 +685,7 @@ unrolls execution where necessary.</p></div>
             self._ph[key] = value
         self._reverse_laph[value] = key
 
-    def _calc_input_shape(self, shapes, input_mode):
+    def _calc_input_shape(self, shapes, input_mode): #TODO: make only list and move rest in operations
         if input_mode == &#39;sum&#39;:
             if not _any(shapes):
                 return None
@@ -869,7 +869,7 @@ optional initialization parameter.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>initial_value</code></strong></dt>
-<dd>_Optional; function that returns the initial output value used for the first step /
+<dd>(optional) function that returns the initial output value used for the first step /
 initial state. Per default, outputs are initialized to zero unless overwritten by the <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code>'s class.</dd>
 </dl></div>
 <details class="source">
@@ -882,7 +882,7 @@ initial state. Per default, outputs are initialized to zero unless overwritten b
     optional initialization parameter.
 
     Args:
-        initial_value: _Optional; function that returns the initial output value used for the first step /
+        initial_value: (optional) function that returns the initial output value used for the first step /
             initial state. Per default, outputs are initialized to zero unless overwritten by the `Layer`&#39;s class.&#34;&#34;&#34;
     _inputs = set()
 
@@ -918,14 +918,14 @@ initial state. Per default, outputs are initialized to zero unless overwritten b
 <span>(</span><span>*module_factory: Union[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>, Iterable[<a title="rnnbuilder.base.ModuleFactory" href="base/index.html#rnnbuilder.base.ModuleFactory">ModuleFactory</a>]])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Equivalent to <code>_torch._torch.nn.Sequential</code>. Accepts multiple <code>_ModuleFactory</code> or an iterable of <code>_ModuleFactory</code>s.
+<div class="desc"><p>Equivalent to <code>torch.nn.Sequential</code>. Accepts multiple <code>ModuleFactory</code> or an iterable of <code>ModuleFactory</code>s.
 The corresponding modules are executed sequentially and associated state is managed automatically.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Sequential(_ModuleFactory):
-    &#34;&#34;&#34;Equivalent to `_torch._torch.nn.Sequential`. Accepts multiple `_ModuleFactory` or an iterable of `_ModuleFactory`s.
+    &#34;&#34;&#34;Equivalent to `torch.nn.Sequential`. Accepts multiple `ModuleFactory` or an iterable of `ModuleFactory`s.
     The corresponding modules are executed sequentially and associated state is managed automatically.&#34;&#34;&#34;
 
     def __init__(self, *module_factory: _Union[_ModuleFactory, _Iterable[_ModuleFactory]]):
@@ -966,13 +966,13 @@ The corresponding modules are executed sequentially and associated state is mana
 <span>(</span><span>*layers: <a title="rnnbuilder.base.LayerBase" href="base/index.html#rnnbuilder.base.LayerBase">LayerBase</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Stacks inputs along the first data dimension using <code>_torch.cat</code>. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
+<div class="desc"><p>Stacks inputs along the first data dimension using <code>torch.cat</code>. Is used as an input to <code><a title="rnnbuilder.Layer" href="#rnnbuilder.Layer">Layer</a></code> in <code><a title="rnnbuilder.Network" href="#rnnbuilder.Network">Network</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Stack(_InputBase):
-    &#34;&#34;&#34;Stacks inputs along the first data dimension using `_torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
+    &#34;&#34;&#34;Stacks inputs along the first data dimension using `torch.cat`. Is used as an input to `Layer` in `Network`&#34;&#34;&#34;
     pass</code></pre>
 </details>
 <h3>Ancestors</h3>

@@ -21,7 +21,7 @@ class _LSTMModule(CustomModule):
         return (self.args['hidden_size'],)
 
     def get_initial_state(self, batch_size):
-        h = torch.zeros(self.lstm.get_expected_hidden_size(None, [batch_size]), device=self.device_zero.device).transpose(0,1)
+        h = torch.zeros(self.lstm.get_expected_hidden_size(None, [batch_size]), device=self.device).transpose(0,1)
         return h, h.clone()
 
     def forward(self, x, h):

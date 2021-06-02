@@ -7,26 +7,34 @@ from ..custom._modules import _StatelessWrapper
 
 
 
-def spike_linear(gradient_factor=0.3):
+class SpikeLinear:
     """Linear surrogate gradient function. Gradient is multiplied with `gradient_factor` at the threshold and falls
     linearly on both sides reaching 0 at 0 and \(2thr\) respectively.
 
     Args:
         gradient_factor: a multiplicator < 1 to add stability to backpropagation. Default: 0.3
     """
-    class SpikeLinear(_torch.autograd.Function):
-
+    class _Inner(_torch.autograd.Function):
         @staticmethod
-        def forward(ctx, input):
+        def forward(ctx, input, gradient_factor):
             ctx.save_for_backward(input)
+            ctx.gradient_factor = gradient_factor
             return (input > 0).float()
 
         @staticmethod
         def backward(ctx, grad_output):
             input, = ctx.saved_tensors
-            return grad_output * _torch.max(_torch.zeros([1], device=input.device), 1 - _torch.abs(input)) * gradient_factor
+            return grad_output * _torch.max(_torch.zeros([1], device=input.device),
+                                            1 - _torch.abs(input)) * ctx.gradient_factor, None
 
-    return SpikeLinear.apply
+    def __init__(self, gradient_factor=0.3):
+        self.gradient_factor = gradient_factor
+
+    def __call__(self, x):
+        return SpikeLinear._Inner.apply(x, self.gradient_factor)
+
+
+
 
 
 class LIF(_RecurrentFactory):
@@ -37,7 +45,7 @@ class LIF(_RecurrentFactory):
         spike_function: Surrogate gradient function used for backpropagation. Default: spike_linear()
     """
     def __init__(self, tau: float = 5,
-                 spike_function=spike_linear()):
+                 spike_function=SpikeLinear()):
         super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function)
 
 class NoReset(_RecurrentFactory):
@@ -48,7 +56,7 @@ class NoReset(_RecurrentFactory):
         spike_function: Surrogate gradient function used for backpropagation. Default: spike_linear()
     """
     def __init__(self, tau: float = 5,
-                 spike_function=spike_linear()):
+                 spike_function=SpikeLinear()):
         super().__init__(_NoResetNeuron, 'flatten', True, True, tau, spike_function)
 
 class Cooldown(_RecurrentFactory):
@@ -60,7 +68,7 @@ class Cooldown(_RecurrentFactory):
         spike_function: Surrogate gradient function used for backpropagation. Default: spike_linear()
     """
     def __init__(self, tau: float = 5,
-                 spike_function=spike_linear()):
+                 spike_function=SpikeLinear()):
         super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function)
 
 class Adaptive(_RecurrentFactory):
@@ -74,7 +82,7 @@ class Adaptive(_RecurrentFactory):
         gamma: scaling factor of threshold increase. Does not directly influence memory capabilities. Default: 0.25
     """
     def __init__(self, tau: float = 5,
-                 spike_function=spike_linear(),
+                 spike_function=SpikeLinear(),
                  tau_thr: float = 5,
                  gamma: float = 0.25):
         super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function, tau_thr, gamma)
@@ -84,7 +92,7 @@ class Discontinuous(_ModuleFactory):
     Equivalent to a LIF neuron with \(tau=0\).
 
     """
-    def __init__(self, spike_function=spike_linear(), threshold: float = 1):
+    def __init__(self, spike_function=SpikeLinear(), threshold: float = 1):
         self.args = spike_function, threshold
 
     def _assemble_module(self, in_shape, unrolled):

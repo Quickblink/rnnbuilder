@@ -68,7 +68,7 @@ n.output = n.o.append(n.tan_c).apply(Hadamard())
 ##Modules
 rnnbuilder provides a number of factories for standard torch modules under `rnnbuilder.nn`. These have identical
 signatures to the `torch.nn` modules (without in_features or in_channels). Additionally, some specific factories for RNN
-and SNN modules are provided under the corresponding submodules.
+and SNN modules are provided under `rnnbuilder.rnn` and `rnnbuilder.snn`.
 
 If you need to use any other modules, `rnnbuilder.custom` provides a base class and registration methods to retrieve
 corresponding factory classes.
@@ -196,7 +196,7 @@ class Network(_ModuleFactory):
     """
 
     def __init__(self):
-        super().__init__()  # TODO: check setattr calls in this
+        super().__init__()
         self._layers = {}
         self._ph = {}
         self._reverse_laph = {}
@@ -230,7 +230,7 @@ class Network(_ModuleFactory):
             self._ph[key] = value
         self._reverse_laph[value] = key
 
-    def _calc_input_shape(self, shapes, input_mode):
+    def _calc_input_shape(self, shapes, input_mode): #TODO: make only list and move rest in operations
         if input_mode == 'sum':
             if not _any(shapes):
                 return None
