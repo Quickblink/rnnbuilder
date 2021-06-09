@@ -69,7 +69,7 @@ class Cooldown(_RecurrentFactory):
     """
     def __init__(self, tau: float = 5,
                  spike_function=SpikeLinear()):
-        super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function)
+        super().__init__(_CooldownNeuron, 'flatten', True, True, tau, spike_function)
 
 class Adaptive(_RecurrentFactory):
     r"""LIF neuron with adaptive threshold as presented in "Bellec et al., 2018: Long short-term memory and
@@ -85,7 +85,7 @@ class Adaptive(_RecurrentFactory):
                  spike_function=SpikeLinear(),
                  tau_thr: float = 5,
                  gamma: float = 0.25):
-        super().__init__(_LIFNeuron, 'flatten', True, True, tau, spike_function, tau_thr, gamma)
+        super().__init__(_AdaptiveNeuron, 'flatten', True, True, tau, spike_function, tau_thr, gamma)
 
 class Discontinuous(_ModuleFactory):
     """Discontinuous spiking neuron. Essentially just the spike function without the persistent membrane potential.

@@ -98,7 +98,7 @@ class Cooldown(_RecurrentFactory):
     &#34;&#34;&#34;
     def __init__(self, tau: float = 5,
                  spike_function=SpikeLinear()):
-        super().__init__(_LIFNeuron, &#39;flatten&#39;, True, True, tau, spike_function)
+        super().__init__(_CooldownNeuron, &#39;flatten&#39;, True, True, tau, spike_function)
 
 class Adaptive(_RecurrentFactory):
     r&#34;&#34;&#34;LIF neuron with adaptive threshold as presented in &#34;Bellec et al., 2018: Long short-term memory and
@@ -114,7 +114,7 @@ class Adaptive(_RecurrentFactory):
                  spike_function=SpikeLinear(),
                  tau_thr: float = 5,
                  gamma: float = 0.25):
-        super().__init__(_LIFNeuron, &#39;flatten&#39;, True, True, tau, spike_function, tau_thr, gamma)
+        super().__init__(_AdaptiveNeuron, &#39;flatten&#39;, True, True, tau, spike_function, tau_thr, gamma)
 
 class Discontinuous(_ModuleFactory):
     &#34;&#34;&#34;Discontinuous spiking neuron. Essentially just the spike function without the persistent membrane potential.
@@ -173,7 +173,7 @@ learning-to-learn in networks of spiking neurons".</p>
                  spike_function=SpikeLinear(),
                  tau_thr: float = 5,
                  gamma: float = 0.25):
-        super().__init__(_LIFNeuron, &#39;flatten&#39;, True, True, tau, spike_function, tau_thr, gamma)</code></pre>
+        super().__init__(_AdaptiveNeuron, &#39;flatten&#39;, True, True, tau, spike_function, tau_thr, gamma)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -217,7 +217,7 @@ learning-to-learn in networks of spiking neurons".</p>
     &#34;&#34;&#34;
     def __init__(self, tau: float = 5,
                  spike_function=SpikeLinear()):
-        super().__init__(_LIFNeuron, &#39;flatten&#39;, True, True, tau, spike_function)</code></pre>
+        super().__init__(_CooldownNeuron, &#39;flatten&#39;, True, True, tau, spike_function)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
